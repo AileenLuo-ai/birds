@@ -3,25 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>Love Birds Game</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+
+    <!-- Load p5.js libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+
+    <!-- Load your scripts in the correct order -->
     <script src="assets.js"></script>
     <script src="sketch.js"></script>
-    <!-- <
-    <link rel="stylesheet" href="css/style.css" /> -->
-
-    <!-- P5.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
-
-    <!-- Game Scripts -->
-    <script src="js/utilities.js"></script>
-    <script src="js/button.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/sketch.js"></script>
   </head>
   <body>
-    <main></main>
+    <!-- p5.js will create the canvas element -->
   </body>
 </html>
