@@ -3,6 +3,7 @@
 Love Birds is an interactive storytelling game where players can choose to play as either a Male Bird trying to perform a mating dance or a Wingman helping another bird find love. The game features character selection, interactive storytelling, and a fun directional dancing minigame.
 
 ## Table of Contents
+
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Game Structure](#game-structure)
@@ -24,11 +25,11 @@ To run Love Birds, you'll need:
 ## Installation
 
 1. **Download the Game Files**
+
    - Download all game files from the project repository
    - Keep the file structure intact
 
-2. **Set Up a Local Server** 
-   
+2. **Set Up a Local Server**
 
    ```bash
    # First install http-server
@@ -76,17 +77,21 @@ love-birds/
 ## How to Play
 
 1. **Start Screen**
+
    - Click the "START" button to begin the game
 
 2. **Character Selection**
+
    - Choose to play as either "Wingman" or "Male Bird"
    - Each character has a different storyline
 
 3. **Story Progression**
+
    - Click the "CONTINUE" button to progress through the story
    - Each character has multiple story cards
 
 4. **Male Bird Dance Game**
+
    - If you chose Male Bird, you'll eventually reach a dancing minigame
    - Use the arrow keys to perform the correct dance sequence
    - Match the pattern: LEFT, LEFT, RIGHT, DOWN
@@ -98,6 +103,7 @@ love-birds/
 ## Controls
 
 - **Mouse**
+
   - Click buttons to navigate through the game
   - Select characters
   - Restart the game
@@ -109,11 +115,13 @@ love-birds/
 ## Troubleshooting
 
 **Game Not Loading**
+
 - Verify all files are in the correct directories
 - Check browser console for any JavaScript errors
 - Make sure you're running the game from a web server, not just opening the HTML file directly
 
 **Performance Issues**
+
 - Close other browser tabs or applications
 - Refresh the page if the game becomes sluggish
 
