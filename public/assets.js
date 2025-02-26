@@ -1,69 +1,57 @@
 // Define assets globally
 let assets = {
-    fonts: {},
-    sounds: {},
-    backgrounds: {},
-    birds: {},
-  };
-  
-  function preloadAssets() {
-    console.log("Loading assets...");
-    
-    // Load sound with error handling
-    try {
-      assets.sounds.backgroundMusic = loadSound(
-        "assets/sounds/gameBackgroundMusic.mp3",
-        () => console.log("Background music loaded successfully"),
-        (err) => console.error("Failed to load background music:", err)
-      );
-    } catch (e) {
-      console.error("Error loading sound:", e);
-    }
-  
-    // Load fonts with error handling
-    try {
-      assets.fonts.headingText = loadFont(
-        "assets/fonts/PixelifySans-VariableFont_wght.ttf",
-        () => console.log("Heading font loaded successfully"),
-        (err) => console.error("Failed to load heading font:", err)
-      );
-      
-      assets.fonts.bodyText = loadFont(
-        "assets/fonts/PressStart2P-Regular.ttf",
-        () => console.log("Body font loaded successfully"),
-        (err) => console.error("Failed to load body font:", err)
-      );
-    } catch (e) {
-      console.error("Error loading fonts:", e);
-    }
-  
-    // Load background images with error handling
-    try {
-      assets.backgrounds.forest = loadImage(
-        "assets/images/forest.png",  // Changed filename - you'll need to update this
-        () => console.log("Forest background loaded successfully"),
-        (err) => console.error("Failed to load forest background:", err)
-      );
-    } catch (e) {
-      console.error("Error loading background:", e);
-    }
-  
-    // Load bird images with error handling
-    try {
-      assets.birds.male = loadImage(
-        "assets/images/redbird.png",
-        () => console.log("Male bird loaded successfully"),
-        (err) => console.error("Failed to load male bird:", err)
-      );
-      
-      assets.birds.female = loadImage(
-        "assets/images/bluebird.png",
-        () => console.log("Female bird loaded successfully"),
-        (err) => console.error("Failed to load female bird:", err)
-      );
-    } catch (e) {
-      console.error("Error loading birds:", e);
-    }
-    
-    console.log("Asset preloading complete");
-  }
+  fonts: {},
+  sounds: {},
+  backgrounds: {},
+  birds: {},
+  signs: {},
+  directions: {},
+  cards: {},
+};
+
+function preloadAssets() {
+  // Load sound with error handling
+  assets.sounds.backgroundMusic = loadSound(
+    "assets/sounds/gameBackgroundMusic.mp3"
+  );
+
+  // Load fonts with error handling
+  assets.fonts.headingText = loadFont("assets/fonts/PressStart2P-Regular.ttf");
+
+  assets.fonts.bodyText = loadFont(
+    "assets/fonts/PixelifySans-VariableFont_wght.ttf"
+  );
+
+  // Load background images with error handling
+  assets.backgrounds.forest = loadImage("assets/images/forest.png");
+  assets.backgrounds.wingman = loadImage("assets/images/level1-wingman.png");
+  assets.backgrounds.win = loadImage("assets/images/win.png");
+  assets.backgrounds.lose = loadImage("assets/images/lose.png");
+
+  // directional sprites
+  assets.signs.down = loadImage("assets/images/direction/down.png");
+  assets.signs.left = loadImage("assets/images/direction/left.png");
+  assets.signs.right = loadImage("assets/images/direction/right.png");
+  assets.signs.up = loadImage("assets/images/direction/up.png");
+  assets.signs.bar = loadImage("assets/images/bar.png");
+  assets.cards.x = loadImage("assets/images/direction/x.png");
+  // Load bird images with error handling
+  assets.birds.male = loadImage("assets/images/cards/male-bird-card.png");
+  assets.birds.wingman = loadImage("assets/images/cards/wingman-card.png");
+  assets.birds.red = loadImage("assets/images/red.png");
+
+  //signs
+  assets.signs.title = loadImage("assets/images/signs/1-title.png");
+  assets.signs.choose = loadImage("assets/images/signs/2-choose.png");
+  assets.signs.how = loadImage("assets/images/signs/3-how.png");
+  assets.signs.success = loadImage("assets/images/signs/4-success.png");
+  assets.signs.lose = loadImage("assets/images/signs/5-lose.png");
+  assets.signs.level = loadImage("assets/images/signs/6-level.png");
+
+  //cards
+  assets.cards.female = loadImage("assets/images/cards/female-card.png");
+  assets.cards.altmale = loadImage("assets/images/cards/wingman-male.png");
+  assets.cards.male = loadImage("assets/images/cards/male-explain.png");
+  assets.cards.wingman = loadImage("assets/images/cards/wingmanside-card.png");
+  assets.cards.dance = loadImage("assets/images/cards/combo-card.png");
+}
