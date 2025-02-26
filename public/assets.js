@@ -14,6 +14,7 @@ function preloadAssets() {
   assets.sounds.backgroundMusic = loadSound(
     "assets/sounds/gameBackgroundMusic.mp3"
   );
+  assets.sounds.screech = loadSound("assets/sounds/screech.mp3");
 
   // Load fonts with error handling
   assets.fonts.headingText = loadFont("assets/fonts/PressStart2P-Regular.ttf");

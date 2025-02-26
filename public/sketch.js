@@ -36,7 +36,6 @@ function setup() {
 function draw() {
   // Try to play background music if it's loaded
   // assets.sounds.backgroundMusic.loop();
-
   // Default sky blue background until assets are ready
   background(135, 206, 235);
   image(assets.backgrounds.forest, 0, 0, 720, 513);
@@ -325,6 +324,11 @@ function keyPressed() {
 function processDirectionInput() {
   let direction = "";
 
+  // Play hawk screech sound when any arrow key is pressed
+  if (assets.sounds.screech && assets.sounds.screech.isLoaded()) {
+    assets.sounds.screech.play();
+  }
+
   // Determine which direction was pressed
   if (keyCode === LEFT_ARROW) {
     direction = "left";
@@ -431,7 +435,7 @@ class Button {
   }
 }
 
-// Completely reworked mousePressed function with proper button state handling
+// Update the mousePressed function to disable clicks during the direction game
 function mousePressed() {
   // Strong debounce protection - prevents multiple clicks being registered too quickly
   const currentTime = millis();
@@ -440,6 +444,30 @@ function mousePressed() {
     return; // Ignore clicks that happen too soon after the previous
   }
   lastClickTime = currentTime;
+
+  // DISABLE CLICKS: If we're in the male bird direction game and it's active
+  // (only allow reset button clicks if the game is won)
+  if (
+    gameState === "PLAY" &&
+    selectedRole === "MALE_BIRD" &&
+    final &&
+    directionGameActive
+  ) {
+    // Only process clicks if the player has won and is clicking the reset button
+    if (playerWon && resetButton && resetButton.isClicked()) {
+      gameState = "SELECT";
+      selectedRole = "";
+      counter = 0;
+      final = false;
+      directionGameActive = false;
+      playerWon = false;
+      playerInputs = [];
+      drawPositions = [];
+      console.log("FULL GAME RESET - Back to character selection");
+    }
+    // Ignore all other clicks during the direction game
+    return;
+  }
 
   // Start button - only in START state
   if (gameState === "START" && startButton && startButton.isClicked()) {
@@ -484,9 +512,10 @@ function mousePressed() {
 
   // PLAY state button handling - split by specific conditions
   if (gameState === "PLAY") {
-    // Reset button - only check in final states
+    // Reset button - only check in final states for Wingman
     if (
-      (final || (directionGameActive && playerWon)) &&
+      selectedRole === "WINGMAN" &&
+      final &&
       resetButton &&
       resetButton.isClicked()
     ) {
