@@ -27,21 +27,9 @@ To run Love Birds, you'll need:
    - Download all game files from the project repository
    - Keep the file structure intact
 
-2. **Set Up a Local Server** (Choose one method)
+2. **Set Up a Local Server** 
    
-   **Method A: Using Python** (easiest)
-   ```bash
-   # Navigate to the game folder
-   cd path/to/love-birds
 
-   # If you have Python 3 installed:
-   python -m http.server
-
-   # If you have Python 2 installed:
-   python -m SimpleHTTPServer
-   ```
-
-   **Method B: Using Node.js**
    ```bash
    # First install http-server
    npm install -g http-server
@@ -53,12 +41,8 @@ To run Love Birds, you'll need:
    http-server
    ```
 
-   **Method C: Using a code editor**
-   - If you use Visual Studio Code, install the "Live Server" extension
-   - Right-click on `index.html` and select "Open with Live Server"
-
 3. **Open the Game**
-   - Open your web browser and navigate to `http://localhost:8000` (or whichever port your server uses)
+   - Open your web browser and navigate to whichever port your server uses
    - The game should start automatically
 
 ## Game Structure
