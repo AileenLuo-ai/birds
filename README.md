@@ -119,7 +119,10 @@ love-birds/
 
 ## Credits
 
-- Artwork and Design: [Scott/ Justin/ Suno]
+- Research [Justin]
+- Artwork and Design: [Justin & Suno]
+- Early Concept Sketch [Suno]
+- Artist [Scott]
 - PM [Caleb]
 - Programming/ Visual Tweaks: [Aileen]
 - Sound Effects: [Pixabay]
