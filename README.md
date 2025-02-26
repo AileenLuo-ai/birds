@@ -121,6 +121,6 @@ love-birds/
 
 - Artwork and Design: [Scott/ Justin/ Suno]
 - PM [Caleb]
-- Programming: [Aileen]
+- Programming/ Visual Tweaks: [Aileen]
 - Sound Effects: [Pixabay]
 - Libraries Used: p5.js, p5.sound.js
