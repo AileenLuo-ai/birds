@@ -108,11 +108,6 @@ love-birds/
 
 ## Troubleshooting
 
-**Audio Issues**
-- Make sure your browser allows audio playback
-- If sounds don't play, check your system volume
-- Try refreshing the page if audio stops working
-
 **Game Not Loading**
 - Verify all files are in the correct directories
 - Check browser console for any JavaScript errors
@@ -124,11 +119,8 @@ love-birds/
 
 ## Credits
 
-- Artwork and Design: [Your Name/Team]
-- Programming: [Your Name/Team]
-- Sound Effects: [Sources]
+- Artwork and Design: [Scott/ Justin/ Suno]
+- PM [Caleb]
+- Programming: [Aileen]
+- Sound Effects: [Pixabay]
 - Libraries Used: p5.js, p5.sound.js
-
----
-
-© [Year] [Your Name/Organization]. All rights reserved.
