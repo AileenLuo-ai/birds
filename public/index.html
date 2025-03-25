@@ -19,6 +19,21 @@
       }
     </style>
 
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      // Example: Sending a message
+      function sendMessage(message) {
+        socket.emit("message", message);
+      }
+
+      // Example: Receiving messages
+      socket.on("message", (data) => {
+        console.log("Message from server:", data);
+      });
+    </script>
+
     <!-- Load p5.js libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>

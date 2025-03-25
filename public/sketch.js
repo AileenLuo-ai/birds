@@ -33,6 +33,16 @@ function setup() {
   resetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
 }
 
+async function createRoom() {
+  const response = await fetch("http://localhost:3000/create-room", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  const data = await response.json();
+  console.log("Room Code:", data.roomCode);
+}
+createRoom();
+
 function draw() {
   // Try to play background music if it's loaded
   // assets.sounds.backgroundMusic.loop();
