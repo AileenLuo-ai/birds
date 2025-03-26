@@ -18,6 +18,11 @@ let playerWon = false; // Track if player has won the direction game
 let inputProcessed = false; // To prevent multiple inputs from a single key press
 let currentBirdDirection = "right"; // Default direction for the player's bird
 let resetButton;
+let roomCode = "";
+let inputRoomCode = "";
+let timer = 0;
+let copied = false;
+let gameSocket;
 
 function preload() {
   preloadAssets(); // Load assets from assets.js
@@ -26,6 +31,12 @@ function preload() {
 function setup() {
   createCanvas(720, 513);
   textAlign(CENTER, CENTER);
+
+  gameSocket = io.connect("http://localhost:3000");
+
+  gameSocket.on("timer-updated", (updatedTimer) => {
+    timer = updatedTimer;
+  });
 
   // Ensure the button is created AFTER canvas is set up
   startButton = new Button(width / 2, height - 72, 200, 60, "START");
@@ -39,8 +50,17 @@ async function createRoom() {
     headers: { "Content-Type": "application/json" },
   });
   const data = await response.json();
-  console.log("Room Code:", data.roomCode);
+  roomCode = data.roomCode;
+  console.log("Room Code:", roomCode);
 }
+
+function joinRoom() {
+  if (inputRoomCode.length === 5) {
+    socket.emit("join-room", inputRoomCode);
+  }
+}
+
+// Create a room on start
 createRoom();
 
 function draw() {
@@ -61,6 +81,36 @@ function draw() {
       drawGame();
       break;
   }
+}
+
+function drawRoomCode() {
+  background(240);
+  textAlign(CENTER, CENTER);
+  fill(0);
+  textSize(24);
+
+  // Display room code
+  text("Room Code:", width / 2, 50);
+  textSize(32);
+  text(roomCode || "----", width / 2, 90);
+
+  // Copy button
+  fill(100, 150, 255);
+  rect(width / 2 - 50, 130, 100, 40, 10);
+  fill(255);
+  textSize(20);
+  text(copied ? "Copied!" : "Copy", width / 2, 150);
+
+  // Input field
+  fill(255);
+  rect(width / 2 - 75, 190, 150, 40, 10);
+  fill(0);
+  textSize(20);
+  text(inputRoomCode, width / 2, 210);
+
+  // Timer display
+  textSize(32);
+  text(`Timer: ${timer}`, width / 2, 270);
 }
 
 function titleComponent(assetName, w, h) {
@@ -290,6 +340,15 @@ function drawDirectionGame() {
 
 // Update the keyPressed function to handle replaying after winning
 function keyPressed() {
+  // Handle input for room code
+  if (keyCode === BACKSPACE) {
+    inputRoomCode = inputRoomCode.slice(0, -1);
+  } else if (keyCode === ENTER) {
+    joinRoom();
+  } else if (inputRoomCode.length < 5 && key.length === 1) {
+    inputRoomCode += key.toUpperCase();
+  }
+
   // Direction game logic
   if (directionGameActive && !inputProcessed) {
     let timeElapsed = millis() - gameStartTime;
@@ -454,6 +513,19 @@ function mousePressed() {
     return; // Ignore clicks that happen too soon after the previous
   }
   lastClickTime = currentTime;
+
+  // Copy room code button
+  if (
+    drawRoomCode &&
+    mouseX > width / 2 - 50 &&
+    mouseX < width / 2 + 50 &&
+    mouseY > 130 &&
+    mouseY < 170
+  ) {
+    navigator.clipboard.writeText(roomCode);
+    copied = true;
+    setTimeout(() => (copied = false), 1000);
+  }
 
   // DISABLE CLICKS: If we're in the male bird direction game and it's active
   // (only allow reset button clicks if the game is won)
