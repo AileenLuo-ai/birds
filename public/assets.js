@@ -7,6 +7,7 @@ let assets = {
   signs: {},
   directions: {},
   cards: {},
+  instructions: {},
 };
 
 function preloadAssets() {
@@ -16,6 +17,14 @@ function preloadAssets() {
   );
   assets.sounds.screech = loadSound("assets/sounds/screech.mp3");
 
+  // Load instruction images with error handling
+  assets.instructions.instruction1 = loadImage("assets/images/instructions/1-instruction.png");
+  assets.instructions.instruction2 = loadImage("assets/images/instructions/2-instruction.png");
+  assets.instructions.instruction3 = loadImage("assets/images/instructions/3-instruction.png");
+  assets.instructions.instruction4 = loadImage("assets/images/instructions/4-instruction.png");
+  assets.instructions.instruction5 = loadImage("assets/images/instructions/5-instruction.png"); 
+  assets.instructions.level2 = loadImage("assets/images/instructions/level2-instruction.png");
+  assets.instructions.level3 = loadImage("assets/images/instructions/level3-instruction.png");
   // Load fonts with error handling
   assets.fonts.headingText = loadFont("assets/fonts/PressStart2P-Regular.ttf");
 
