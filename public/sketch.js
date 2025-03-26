@@ -1,28 +1,26 @@
-let gameState = "START";
+// sketch.js - Main game logic
+// Expose gameState to the window so it can be accessed from HTML buttons
+window.gameState = "START";
+let gameState = window.gameState;
 let selectedRole = "";
 let startButton;
 let continueButton;
 let counter = 0;
 let final = false;
-// Add this near your other global variables
 let lastClickTime = 0;
-const CLICK_DELAY = 100; // Increase delay to ensure clicks are well-separated
-// Add these variables to your global variables section
-let gamePattern = ["left", "left", "right", "down"]; // The expected pattern
-let playerInputs = []; // To store the player's inputs
-let drawPositions = []; // To store what should be drawn at each position
-let directionGameActive = false; // Track if direction game is active
-let gameStartTime = 0; // To track when the direction game started
-let gameTimeLimit = 30000; // 30 seconds in milliseconds
-let playerWon = false; // Track if player has won the direction game
-let inputProcessed = false; // To prevent multiple inputs from a single key press
-let currentBirdDirection = "right"; // Default direction for the player's bird
+const CLICK_DELAY = 100;
+
+// Game pattern variables
+let gamePattern = ["left", "left", "right", "down"];
+let playerInputs = [];
+let drawPositions = [];
+let directionGameActive = false;
+let gameStartTime = 0;
+let gameTimeLimit = 30000;
+let playerWon = false;
+let inputProcessed = false;
+let currentBirdDirection = "right";
 let resetButton;
-let roomCode = "";
-let inputRoomCode = "";
-let timer = 0;
-let copied = false;
-let gameSocket;
 
 function preload() {
   preloadAssets(); // Load assets from assets.js
@@ -32,11 +30,11 @@ function setup() {
   createCanvas(720, 513);
   textAlign(CENTER, CENTER);
 
-  gameSocket = io.connect("http://localhost:3000");
+  // Initialize the room manager
+  RoomManager.init();
 
-  gameSocket.on("timer-updated", (updatedTimer) => {
-    timer = updatedTimer;
-  });
+  // Create room on startup
+  RoomManager.createRoom();
 
   // Ensure the button is created AFTER canvas is set up
   startButton = new Button(width / 2, height - 72, 200, 60, "START");
@@ -44,77 +42,35 @@ function setup() {
   resetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
 }
 
-async function createRoom() {
-  const response = await fetch("http://localhost:3000/create-room", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-  });
-  const data = await response.json();
-  roomCode = data.roomCode;
-  console.log("Room Code:", roomCode);
-}
-
-function joinRoom() {
-  if (inputRoomCode.length === 5) {
-    socket.emit("join-room", inputRoomCode);
-  }
-}
-
-// Create a room on start
-createRoom();
-
 function draw() {
-  // Try to play background music if it's loaded
-  // assets.sounds.backgroundMusic.loop();
+  // Update the window.gameState to match the local gameState variable
+  // This ensures both stay in sync
+  gameState = window.gameState;
+
   // Default sky blue background until assets are ready
   background(135, 206, 235);
-  image(assets.backgrounds.forest, 0, 0, 720, 513);
 
   switch (gameState) {
     case "START":
+      image(assets.backgrounds.forest, 0, 0, 720, 513);
       drawStartScreen();
       break;
     case "SELECT":
+      image(assets.backgrounds.forest, 0, 0, 720, 513);
       drawCharacterSelect();
       break;
     case "PLAY":
+      image(assets.backgrounds.forest, 0, 0, 720, 513);
       drawGame();
+      break;
+    case "ROOM":
+      RoomManager.drawRoomCode(width, height);
       break;
   }
 }
 
-function drawRoomCode() {
-  background(240);
-  textAlign(CENTER, CENTER);
-  fill(0);
-  textSize(24);
-
-  // Display room code
-  text("Room Code:", width / 2, 50);
-  textSize(32);
-  text(roomCode || "----", width / 2, 90);
-
-  // Copy button
-  fill(100, 150, 255);
-  rect(width / 2 - 50, 130, 100, 40, 10);
-  fill(255);
-  textSize(20);
-  text(copied ? "Copied!" : "Copy", width / 2, 150);
-
-  // Input field
-  fill(255);
-  rect(width / 2 - 75, 190, 150, 40, 10);
-  fill(0);
-  textSize(20);
-  text(inputRoomCode, width / 2, 210);
-
-  // Timer display
-  textSize(32);
-  text(`Timer: ${timer}`, width / 2, 270);
-}
-
 function titleComponent(assetName, w, h) {
-  // caption title component
+  // Caption title component
   imageMode(CENTER);
   image(assetName, width / 2, 48, w, h);
   imageMode(CORNER);
@@ -338,58 +294,7 @@ function drawDirectionGame() {
   inputProcessed = false;
 }
 
-// Update the keyPressed function to handle replaying after winning
-function keyPressed() {
-  // Handle input for room code
-  if (keyCode === BACKSPACE) {
-    inputRoomCode = inputRoomCode.slice(0, -1);
-  } else if (keyCode === ENTER) {
-    joinRoom();
-  } else if (inputRoomCode.length < 5 && key.length === 1) {
-    inputRoomCode += key.toUpperCase();
-  }
-
-  // Direction game logic
-  if (directionGameActive && !inputProcessed) {
-    let timeElapsed = millis() - gameStartTime;
-
-    if (timeElapsed < gameTimeLimit && !playerWon) {
-      // Game is active and not won yet
-      if (keyCode === ENTER) {
-        // Reset the game if the sequence was wrong or player wants to retry
-        if (
-          drawPositions.length > 0 &&
-          drawPositions[drawPositions.length - 1] === "x"
-        ) {
-          // Reset only the inputs, not the whole game
-          playerInputs = [];
-          drawPositions = [];
-          inputProcessed = true;
-        }
-      } else if (
-        (keyCode === LEFT_ARROW ||
-          keyCode === RIGHT_ARROW ||
-          keyCode === UP_ARROW ||
-          keyCode === DOWN_ARROW) &&
-        drawPositions.length < gamePattern.length
-      ) {
-        // Process arrow key input
-        processDirectionInput();
-        inputProcessed = true;
-      }
-    } else if (keyCode === ENTER) {
-      // Time's up OR player won, and wants to try again
-      directionGameActive = true;
-      gameStartTime = millis();
-      playerInputs = [];
-      drawPositions = [];
-      playerWon = false;
-      inputProcessed = true;
-    }
-  }
-}
-
-// New function to process direction inputs
+// Process direction inputs function
 function processDirectionInput() {
   let direction = "";
 
@@ -465,70 +370,81 @@ function drawWingmanScreen() {
   }
 }
 
-// Button class
-class Button {
-  constructor(x, y, w, h, text) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.text = text;
+function keyPressed() {
+  // Handle room code input through the RoomManager
+  if (gameState === "ROOM") {
+    if (keyCode === BACKSPACE) {
+      RoomManager.updateInputCode("BACKSPACE");
+    } else if (keyCode === ENTER) {
+      RoomManager.updateInputCode("ENTER");
+    } else if (key.length === 1) {
+      RoomManager.updateInputCode(key);
+    }
   }
 
-  draw() {
-    let isHovered =
-      mouseX > this.x - this.w / 2 &&
-      mouseX < this.x + this.w / 2 &&
-      mouseY > this.y - this.h / 2 &&
-      mouseY < this.y + this.h / 2;
+  // Direction game logic
+  if (directionGameActive && !inputProcessed) {
+    let timeElapsed = millis() - gameStartTime;
 
-    // Button background
-    rectMode(CENTER);
-    fill(isHovered ? "#161616" : "black");
-    rect(this.x, this.y, this.w, this.h, 10);
-
-    // Button text
-    textFont(assets.fonts.bodyText);
-    textSize(20);
-    fill(255);
-    text(this.text, this.x, this.y);
-  }
-
-  isClicked() {
-    return (
-      mouseX > this.x - this.w / 2 &&
-      mouseX < this.x + this.w / 2 &&
-      mouseY > this.y - this.h / 2 &&
-      mouseY < this.y + this.h / 2
-    );
+    if (timeElapsed < gameTimeLimit && !playerWon) {
+      // Game is active and not won yet
+      if (keyCode === ENTER) {
+        // Reset the game if the sequence was wrong or player wants to retry
+        if (
+          drawPositions.length > 0 &&
+          drawPositions[drawPositions.length - 1] === "x"
+        ) {
+          // Reset only the inputs, not the whole game
+          playerInputs = [];
+          drawPositions = [];
+          inputProcessed = true;
+        }
+      } else if (
+        (keyCode === LEFT_ARROW ||
+          keyCode === RIGHT_ARROW ||
+          keyCode === UP_ARROW ||
+          keyCode === DOWN_ARROW) &&
+        drawPositions.length < gamePattern.length
+      ) {
+        // Process arrow key input
+        processDirectionInput();
+        inputProcessed = true;
+      }
+    } else if (keyCode === ENTER) {
+      // Time's up OR player won, and wants to try again
+      directionGameActive = true;
+      gameStartTime = millis();
+      playerInputs = [];
+      drawPositions = [];
+      playerWon = false;
+      inputProcessed = true;
+    }
   }
 }
 
-// Update the mousePressed function to disable clicks during the direction game
 function mousePressed() {
-  // Strong debounce protection - prevents multiple clicks being registered too quickly
+  // Strong debounce protection
   const currentTime = millis();
   if (currentTime - lastClickTime < CLICK_DELAY) {
     console.log("Debounced click - too soon after last click");
-    return; // Ignore clicks that happen too soon after the previous
+    return;
   }
   lastClickTime = currentTime;
 
-  // Copy room code button
-  if (
-    drawRoomCode &&
-    mouseX > width / 2 - 50 &&
-    mouseX < width / 2 + 50 &&
-    mouseY > 130 &&
-    mouseY < 170
-  ) {
-    navigator.clipboard.writeText(roomCode);
-    copied = true;
-    setTimeout(() => (copied = false), 1000);
+  // Handle room code screen interactions
+  if (gameState === "ROOM") {
+    if (
+      mouseX > width / 2 - 50 &&
+      mouseX < width / 2 + 50 &&
+      mouseY > 130 &&
+      mouseY < 170
+    ) {
+      RoomManager.copyRoomCode();
+    }
+    return;
   }
 
-  // DISABLE CLICKS: If we're in the male bird direction game and it's active
-  // (only allow reset button clicks if the game is won)
+  // PLAY state - handle direction game clicks
   if (
     gameState === "PLAY" &&
     selectedRole === "MALE_BIRD" &&
@@ -634,5 +550,44 @@ function mousePressed() {
       );
       return;
     }
+  }
+}
+
+// Button class
+class Button {
+  constructor(x, y, w, h, text) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.text = text;
+  }
+
+  draw() {
+    let isHovered =
+      mouseX > this.x - this.w / 2 &&
+      mouseX < this.x + this.w / 2 &&
+      mouseY > this.y - this.h / 2 &&
+      mouseY < this.y + this.h / 2;
+
+    // Button background
+    rectMode(CENTER);
+    fill(isHovered ? "#161616" : "black");
+    rect(this.x, this.y, this.w, this.h, 10);
+
+    // Button text
+    textFont(assets.fonts.bodyText);
+    textSize(20);
+    fill(255);
+    text(this.text, this.x, this.y);
+  }
+
+  isClicked() {
+    return (
+      mouseX > this.x - this.w / 2 &&
+      mouseX < this.x + this.w / 2 &&
+      mouseY > this.y - this.h / 2 &&
+      mouseY < this.y + this.h / 2
+    );
   }
 }

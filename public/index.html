@@ -4,46 +4,74 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Love Birds Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
     <style>
       body {
         margin: 0;
         padding: 0;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background-color: #f0f0f0;
+        background-color: #222;
       }
       canvas {
         display: block;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+      #controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        padding: 8px 16px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background-color: #45a049;
       }
     </style>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io();
-
-      // Example: Sending a message
-      function sendMessage(message) {
-        socket.emit("message", message);
-      }
-
-      // Example: Receiving messages
-      socket.on("message", (data) => {
-        console.log("Message from server:", data);
-      });
-    </script>
-
-    <!-- Load p5.js libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
-
-    <!-- Load your scripts in the correct order -->
-    <script src="assets.js"></script>
-    <script src="sketch.js"></script>
-    <script src="room-code.js"></script>
   </head>
   <body>
-    <!-- p5.js will create the canvas element -->
+    <div id="controls">
+      <button id="roomButton">Room Settings</button>
+      <button id="gameButton">Back to Game</button>
+    </div>
+
+    <!-- Load scripts in the correct order -->
+    <script src="assets.js"></script>
+    <script src="room-code.js"></script>
+    <script src="sketch.js"></script>
+
+    <script>
+      // Add external controls for switching between game and room screens
+      document
+        .getElementById("roomButton")
+        .addEventListener("click", function () {
+          // Access the p5.js sketch instance and change the gameState
+          if (window.gameState !== undefined) {
+            window.gameState = "ROOM";
+          }
+        });
+
+      document
+        .getElementById("gameButton")
+        .addEventListener("click", function () {
+          // Go back to the game screen
+          if (window.gameState !== undefined) {
+            window.gameState =
+              window.gameState === "ROOM" ? "START" : window.gameState;
+          }
+        });
+    </script>
   </body>
 </html>

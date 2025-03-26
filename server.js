@@ -24,7 +24,6 @@ app.use((req, res, next) => {
 // Imports
 app.use(express.static("public"));
 
-
 // Room management
 const rooms = {};
 
