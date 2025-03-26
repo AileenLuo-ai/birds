@@ -44,6 +44,7 @@ io.on("connection", (socket) => {
     if (rooms[roomCode]) {
       socket.join(roomCode);
       rooms[roomCode].players.push(socket.id);
+      io.to(roomCode).emit("player-count", rooms[roomCode].players.length);
       io.to(roomCode).emit("player-joined", rooms[roomCode].players);
       console.log(`${socket.id} joined room: ${roomCode}`);
     } else {
@@ -66,9 +67,20 @@ io.on("connection", (socket) => {
       rooms[roomCode].players = rooms[roomCode].players.filter(
         (id) => id !== socket.id
       );
+      io.to(roomCode).emit("player-count", rooms[roomCode].players.length);
       io.to(roomCode).emit("player-left", rooms[roomCode].players);
     }
     console.log("User disconnected:", socket.id);
+  });
+
+  // Listen for player count updates
+  socket.on("player-count", (count) => {
+    console.log("Player count received:", count); // Debug log
+    rooms[roomCode].players = rooms[roomCode].players.filter(
+      (id) => id !== socket.id
+    );
+    io.to(roomCode).emit("player-count", rooms[roomCode].players.length);
+    io.to(roomCode).emit("player-left", rooms[roomCode].players);
   });
 });
 

@@ -38,6 +38,9 @@ const RoomManager = {
           this.roomMessage = "Waiting for another player to join...";
           this.timerActive = false;
         }
+
+        // Force p5.js to redraw the canvas
+        redraw();
       });
 
       // Listen for join confirmation
@@ -106,51 +109,55 @@ const RoomManager = {
     }
   },
 
-  // Copy room code to clipboard
-  copyRoomCode: function () {
-    if (navigator.clipboard && this.roomCode) {
-      navigator.clipboard.writeText(this.roomCode);
-      this.copied = true;
-      setTimeout(() => (this.copied = false), 1000);
-      return true;
-    }
-    return false;
-  },
-
   // Draw the room code interface
   drawRoomCode: function (width, height) {
     background(240);
     textAlign(CENTER, CENTER);
+    rectMode(CENTER);
+
+    // Helper function to check if mouse is over a rectangle
+    const isHovered = (x, y, w, h) => {
+      return (
+        mouseX > x - w / 2 &&
+        mouseX < x + w / 2 &&
+        mouseY > y - h / 2 &&
+        mouseY < y + h / 2
+      );
+    };
+
+    // Helper function to get button colors based on state
+    const getButtonColors = (
+      defaultColor,
+      hoverColor,
+      isHovered,
+      isPressed
+    ) => {
+      if (isPressed && isHovered) {
+        return color(
+          hoverColor[0] * 0.8,
+          hoverColor[1] * 0.8,
+          hoverColor[2] * 0.8
+        );
+      } else if (isHovered) {
+        return color(hoverColor[0], hoverColor[1], hoverColor[2]);
+      }
+      return color(defaultColor[0], defaultColor[1], defaultColor[2]);
+    };
 
     // Title
-    fill(30, 100, 200);
+    fill("black");
     textSize(36);
-    text("Room Management", width / 2, 40);
+    text("Invite Friends", width / 2, 40);
 
-    // Display room info section
-    fill(0);
+    // Room code display
+    fill("grey");
     textSize(24);
     text("Room Code:", width / 2, 80);
 
-    // Display the room code in a box
-    fill(255);
-    stroke(100);
-    strokeWeight(2);
-    rect(width / 2 - 100, 95, 200, 50, 10);
     fill(0);
     textSize(32);
     strokeWeight(0);
     text(this.roomCode || "----", width / 2, 120);
-
-    // Copy button
-    fill(this.copied ? 100 : 80, this.copied ? 200 : 150, 255);
-    stroke(60, 100, 200);
-    strokeWeight(2);
-    rect(width / 2 - 50, 160, 100, 40, 10);
-    fill(255);
-    textSize(20);
-    strokeWeight(0);
-    text(this.copied ? "Copied!" : "Copy", width / 2, 180);
 
     // Input section
     fill(0);
@@ -158,26 +165,41 @@ const RoomManager = {
     text("Join Room:", width / 2, 230);
 
     // Input field
+    const inputHovered = isHovered(width / 2, 275, 200, 50);
     fill(255);
-    stroke(100);
-    strokeWeight(2);
-    rect(width / 2 - 100, 250, 200, 50, 10);
+    stroke(inputHovered ? color(80, 120, 255) : 100);
+    strokeWeight(inputHovered ? 3 : 2);
+    rect(width / 2, 275, 200, 50, 10);
+
     fill(0);
     textSize(28);
     strokeWeight(0);
     text(this.inputRoomCode, width / 2, 275);
 
-    // Join button
-    fill(60, 180, 60);
-    stroke(30, 150, 30);
-    strokeWeight(2);
-    rect(width / 2 - 60, 320, 120, 45, 10);
+    // Join button (now using blue colors)
+    const joinHovered = isHovered(width / 2, 342, 120, 45);
+    const joinPressed = joinHovered && mouseIsPressed;
+    const joinDefaultColor = [80, 150, 255]; // Same blue as previous copy button
+    const joinHoverColor = [100, 170, 255]; // Same hover blue as previous copy button
+
+    fill(
+      getButtonColors(
+        joinDefaultColor,
+        joinHoverColor,
+        joinHovered,
+        joinPressed
+      )
+    );
+    stroke(60, 100, 200); // Same stroke as previous copy button
+    strokeWeight(joinHovered ? 3 : 2);
+    rect(width / 2, 342, 120, 45, 10);
+
     fill(255);
     textSize(24);
     strokeWeight(0);
     text("Join", width / 2, 342);
 
-    // Player indicator
+    // Player indicator with dynamic color based on count
     const playerColor =
       this.playerCount === 0
         ? [200, 50, 50]
@@ -185,22 +207,36 @@ const RoomManager = {
         ? [200, 200, 50]
         : [50, 200, 50];
 
-    // Player count circle
+    // Enhanced pulsing effect
+    const pulseSize = sin(frameCount * 0.1) * 5;
     fill(playerColor[0], playerColor[1], playerColor[2]);
     stroke(0);
     strokeWeight(1);
-    ellipse(width - 60, 40, 40, 40);
+    ellipse(width - 70, 50, 40 + pulseSize, 40 + pulseSize);
 
     // Player count text
     fill(255);
     textSize(20);
     strokeWeight(0);
-    text(this.playerCount, width - 60, 40);
+    text(this.playerCount, width - 70, 50);
 
-    // Player count label
+    // Player status text
     fill(0);
-    textSize(16);
-    text("Players", width - 60, 65);
+    textSize(14);
+    text("Players", width - 70, 80);
+
+    // Status message below player count
+    fill(0);
+    textSize(12);
+    text(
+      this.playerCount === 0
+        ? "Waiting for players..."
+        : this.playerCount === 1
+        ? "One player joined"
+        : "Room is full!",
+      width - 70,
+      100
+    );
 
     // Timer display
     fill(50, 50, 50);
@@ -217,7 +253,7 @@ const RoomManager = {
     text(this.timer, width / 2, 430);
 
     // Status message
-    fill(this.roomJoined ? 50 : 200, this.roomJoined ? 150 : 50, 50);
+    fill(this.roomJoined ? 50 : 200, this.roomJoined ? 150 : 50);
     textSize(18);
     text(this.roomMessage, width / 2, height - 40);
   },
