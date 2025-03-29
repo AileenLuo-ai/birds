@@ -8,8 +8,9 @@ let counter = 0;
 let final = false;
 let lastClickTime = 0;
 const CLICK_DELAY = 100; // Increase delay to ensure clicks are well-separated
+let playButton;
 let resetButton;
-let instructionCounter = -1;
+let instructionCounter = 0;
 let nextButton;
 let nextButtonClicked = false; // Flag to track if the next button was clicked
 // Import direction game functionality
@@ -35,7 +36,7 @@ function setup() {
   continueButton = new Button(width / 2, height - 72, 200, 60, "CONTINUE");
   resetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
-
+  playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
   // Initialize direction game
   initDirectionGame();
 }
@@ -114,17 +115,20 @@ function instructionScreen() {
 
   if (instructionCounter === 0) {
     instructionSizing(assets.instructions.instruction1);
+    nextButton.draw();
   } else if (instructionCounter === 1) {
     instructionSizing(assets.instructions.instruction2);
+    nextButton.draw();
   } else if (instructionCounter === 2) {
     instructionSizing(assets.instructions.instruction3);
+    nextButton.draw();
   } else if (instructionCounter === 3) {
     instructionSizing(assets.instructions.instruction4);
+    nextButton.draw();
   } else if (instructionCounter === 4) {
     instructionSizing(assets.instructions.instruction5);
+    playButton.draw();
   }
-
-  nextButton.draw();
 }
 
 function drawCharacterOption(role, x, y, birdImage) {
@@ -294,6 +298,16 @@ function mousePressed() {
   if (gameState === "START" && instructionButton.isClicked()) {
     gameState = "INSTRUCTION";
     console.log("Changed to INSTRUCTION state");
+  }
+
+  // Start button - only in START state
+  if (
+    gameState === "INSTRUCTION" &&
+    playButton.isClicked() &&
+    instructionCounter === 5
+  ) {
+    gameState = "PLAY";
+    console.log("Changed to PLAY state");
   }
 
   // DISABLE CLICKS: If we're in the male bird direction game and it's active
