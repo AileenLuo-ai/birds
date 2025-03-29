@@ -194,25 +194,6 @@ function drawDirectionGame() {
     }
   }
 
-  if (
-    drawPositions.length > 0 &&
-    drawPositions[drawPositions.length - 1] === "x"
-  ) {
-    // Wrong sequence, show message to try again
-    textSize(24);
-    fill("white");
-    text("Wrong sequence! Press ENTER to try again", width / 2, height - 148);
-    fill(255);
-  } else if (drawPositions.length < gamePattern.length) {
-    // Still waiting for input
-    textSize(20);
-    text(
-      "Press arrow keys to perform the mating dance that \n your wingman shows you!",
-      width / 2,
-      height - 148
-    );
-  }
-
   // Reset input processed flag each frame
   inputProcessed = false;
 }

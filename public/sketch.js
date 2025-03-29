@@ -12,9 +12,6 @@ let playButton;
 let resetButton;
 let instructionCounter = 0;
 let nextButton;
-let nextButtonClicked = false; // Flag to track if the next button was clicked
-// Import direction game functionality
-// This assumes you're using a module system or including the directionGame.js file before this one
 
 function preload() {
   preloadAssets(); // Load assets from assets.js
@@ -174,6 +171,10 @@ function drawMaleBirdScreen() {
   imageMode(CORNER);
   image(assets.backgrounds.forest, 0, 0, 720, 513);
 
+  titleComponent(assets.signs.level, 240, 48);
+  instructionSizing(assets.instructions.level2);
+  continueButton.draw();
+
   if (final === true) {
     if (!directionGameActive) {
       // First time reaching final state, initialize the direction game
@@ -187,20 +188,6 @@ function drawMaleBirdScreen() {
     // Draw direction game
     drawDirectionGame();
     return;
-  }
-
-  // If not in final state, draw the regular screens
-  titleComponent(assets.signs.how, 320, 48);
-
-  if (counter === 0) {
-    centerCard(assets.cards.male);
-    continueButton.draw();
-  } else if (counter === 1) {
-    centerCard(assets.cards.altmale);
-    continueButton.draw();
-  } else if (counter === 2) {
-    centerCard(assets.cards.dance);
-    continueButton.draw();
   }
 }
 
@@ -282,16 +269,8 @@ function mousePressed() {
   }
   lastClickTime = currentTime;
 
-  if (
-    gameState === "INSTRUCTION" &&
-    nextButton.isClicked() &&
-    !nextButtonClicked
-  ) {
+  if (gameState === "INSTRUCTION" && nextButton.isClicked()) {
     instructionCounter++;
-    nextButtonClicked = true; // Set the flag to true to prevent further increments
-    console.log("Instruction counter incremented:", instructionCounter);
-  } else if (gameState === "INSTRUCTION") {
-    nextButtonClicked = false; // Reset the flag when the mouse is released
   }
 
   // Start button - only in START state
@@ -306,8 +285,7 @@ function mousePressed() {
     playButton.isClicked() &&
     instructionCounter === 5
   ) {
-    gameState = "PLAY";
-    console.log("Changed to PLAY state");
+    gameState = "SELECT";
   }
 
   // DISABLE CLICKS: If we're in the male bird direction game and it's active
@@ -382,23 +360,7 @@ function mousePressed() {
 
     // Continue button - only check when NOT in final state
     if (!final && continueButton && continueButton.isClicked()) {
-      // Store old values for logging
-      const oldCounter = counter;
-      const oldFinal = final;
-
-      // Update state based on current counter value
-      if (counter === 0) {
-        counter = 1;
-      } else if (counter === 1) {
-        counter = 2;
-      } else if (counter === 2) {
-        final = true;
-      }
-
-      // Log the change that occurred
-      console.log(
-        `Button click: counter ${oldCounter}->${counter}, final ${oldFinal}->${final}`
-      );
+      final = true;
       return;
     }
   }
@@ -415,4 +377,12 @@ function resetGame() {
   playerInputs = [];
   drawPositions = [];
   console.log("FULL GAME RESET - Back to character selection");
+}
+
+function keyPressed() {
+  console.log("Key pressed:", keyCode); // Debug log
+
+  if (gameState === "PLAY" && !final) {
+    handleDirectionGameKeyPress();
+  }
 }
