@@ -12,6 +12,8 @@ let playButton;
 let resetButton;
 let instructionCounter = 0;
 let nextButton;
+let lvl1Button;
+let lvl2Button;
 
 function preload() {
   preloadAssets(); // Load assets from assets.js
@@ -34,6 +36,8 @@ function setup() {
   resetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
+  lvl1Button = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT LEVEL");
+  lvl2Button = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT LEVEL");
   // Initialize direction game
   initDirectionGame();
 }
@@ -57,6 +61,12 @@ function draw() {
       break;
     case "INSTRUCTION":
       instructionScreen();
+      break;
+    case "LEVEL 2":
+      drawLevel2Screen();
+      break;
+    case "LEVEL 3":
+      drawLevel3Screen();
       break;
   }
 }
@@ -347,25 +357,35 @@ function mousePressed() {
 
   // PLAY state button handling - split by specific conditions
   if (gameState === "PLAY") {
-    // Reset button - only check in final states for Wingman
-    if (
-      selectedRole === "WINGMAN" &&
-      final &&
-      resetButton &&
-      resetButton.isClicked()
-    ) {
-      resetGame();
-      return;
+    if (selectedRole === "MALE_BIRD") {
+      if (!final && continueButton && continueButton.isClicked()) {
+        counter++;
+      }
+
+      if (counter > 0) {
+        final = true;
+      }
     }
 
-    // Continue button - only check when NOT in final state
-    if (!final && continueButton && continueButton.isClicked()) {
-      final = true;
-      return;
+    if (selectedRole === "WINGMAN") {
+      // Continue button - only check when NOT in final state
+      if (!final && continueButton && continueButton.isClicked()) {
+        counter++;
+
+        // If we've gone through all the counter states, set to final
+        if (counter > 2) {
+          final = true;
+        }
+        return;
+      }
+
+      if (final && resetButton && resetButton.isClicked()) {
+        resetGame();
+        return;
+      }
     }
   }
 }
-
 // Helper function to reset the game state
 function resetGame() {
   gameState = "SELECT";
@@ -379,10 +399,25 @@ function resetGame() {
   console.log("FULL GAME RESET - Back to character selection");
 }
 
+// Add keyPressed function to handle keyboard input
 function keyPressed() {
-  console.log("Key pressed:", keyCode); // Debug log
+  // Only process key events for the direction game
+  if (
+    gameState === "PLAY" &&
+    selectedRole === "MALE_BIRD" &&
+    final &&
+    directionGameActive
+  ) {
+    handleDirectionGameKeyPress(keyCode);
+  }
 
-  if (gameState === "PLAY" && !final) {
-    handleDirectionGameKeyPress();
+  // Prevent default behavior for arrow keys to avoid scrolling
+  if (
+    keyCode === UP_ARROW ||
+    keyCode === DOWN_ARROW ||
+    keyCode === LEFT_ARROW ||
+    keyCode === RIGHT_ARROW
+  ) {
+    return false;
   }
 }

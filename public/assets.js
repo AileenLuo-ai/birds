@@ -8,6 +8,7 @@ let assets = {
   directions: {},
   cards: {},
   instructions: {},
+  meter: {},
 };
 
 function preloadAssets() {
@@ -51,7 +52,7 @@ function preloadAssets() {
   assets.backgrounds.wingman = loadImage("assets/images/level1-wingman.png");
   assets.backgrounds.win = loadImage("assets/images/win.png");
   assets.backgrounds.lose = loadImage("assets/images/lose.png");
-
+  assets.backgrounds.play1 = loadImage("assets/images/lvl1background.png");
   // directional sprites
   assets.signs.down = loadImage("assets/images/direction/down.png");
   assets.signs.left = loadImage("assets/images/direction/left.png");
@@ -78,4 +79,11 @@ function preloadAssets() {
   assets.cards.male = loadImage("assets/images/cards/male-explain.png");
   assets.cards.wingman = loadImage("assets/images/cards/wingmanside-card.png");
   assets.cards.dance = loadImage("assets/images/cards/combo-card.png");
+
+  //cards
+  assets.meter.meter1 = loadImage("assets/images/meter/meter00.png");
+  assets.meter.meter2 = loadImage("assets/images/meter/meter01.png");
+  assets.meter.meter3 = loadImage("assets/images/meter/meter02.png");
+  assets.meter.meter4 = loadImage("assets/images/meter/meter03.png");
+  assets.meter.meter5 = loadImage("assets/images/meter/meter04.png");
 }

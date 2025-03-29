@@ -1,13 +1,16 @@
 // Direction game variables
-let gamePattern = ["left", "left", "right", "down"]; // The expected pattern
+let gamePattern = ["up", "down", "up", "down"];
+
 let playerInputs = []; // To store the player's inputs
 let drawPositions = []; // To store what should be drawn at each position
 let directionGameActive = false; // Track if direction game is active
 let gameStartTime = 0; // To track when the direction game started
-let gameTimeLimit = 30000; // 30 seconds in milliseconds
+let gameTimeLimit = 35000; // 30 seconds in milliseconds
 let playerWon = false; // Track if player has won the direction game
 let inputProcessed = false; // To prevent multiple inputs from a single key press
 let currentBirdDirection = "right"; // Default direction for the player's bird
+let rightInput = 0;
+let wrongInput = 0;
 
 // Initialize the direction game
 function initDirectionGame() {
@@ -18,9 +21,8 @@ function initDirectionGame() {
   currentBirdDirection = "right";
 }
 
-// Handle key presses for the direction game
 // Process a single direction input
-function processDirectionInput() {
+function processDirectionInput(keyCode) {
   let direction = "";
 
   // Play hawk screech sound when any arrow key is pressed
@@ -53,32 +55,52 @@ function processDirectionInput() {
   if (direction === gamePattern[currentIndex]) {
     // Correct input, draw the corresponding bird
     drawPositions.push(direction);
-
-    // Check if the full pattern is complete and correct
-    if (playerInputs.length === gamePattern.length) {
-      playerWon = true;
-    }
+    rightInput++;
   } else {
     // Incorrect input, draw an X
-    drawPositions.push("x");
+    drawPositions.push(direction);
+    wrongInput++;
+  }
+
+  // Check if we've reached 4 inputs
+  if (playerInputs.length === 4) {
+    rightInput = 0;
+
+    if (wrongInput === 0) {
+      // All inputs were correct - move to level 2
+      playerWon = true;
+      // You might want to add a level variable to track progress
+      // level = 2;
+    } else {
+      // Reset the game if any inputs were wrong
+      setTimeout(() => {
+        playerInputs = [];
+        drawPositions = [];
+        wrongInput = 0;
+        currentBirdDirection = "right";
+      }, 1000); // Wait 1 second before resetting to show the wrong inputs
+    }
   }
 }
 
-function handleDirectionGameKeyPress() {
+function drawMeter(meterImage) {
+  imageMode(CORNER);
+  image(meterImage, width - 96, 48, 72, 424);
+}
+
+function handleDirectionGameKeyPress(keyCode) {
   if (directionGameActive && !inputProcessed) {
     let timeElapsed = millis() - gameStartTime;
 
     if (timeElapsed < gameTimeLimit && !playerWon) {
       // Game is active and not won yet
       if (keyCode === ENTER) {
-        // Reset the game if the sequence was wrong or player wants to retry
-        if (
-          drawPositions.length > 0 &&
-          drawPositions[drawPositions.length - 1] === "x"
-        ) {
-          // Reset only the inputs, not the whole game
+        // Reset the game if the sequence was wrong
+        if (wrongInput > 0) {
           playerInputs = [];
           drawPositions = [];
+          wrongInput = 0;
+          currentBirdDirection = "right";
           inputProcessed = true;
         }
       } else if (
@@ -86,19 +108,17 @@ function handleDirectionGameKeyPress() {
           keyCode === RIGHT_ARROW ||
           keyCode === UP_ARROW ||
           keyCode === DOWN_ARROW) &&
-        drawPositions.length < gamePattern.length
+        playerInputs.length < gamePattern.length
       ) {
         // Process arrow key input
-        processDirectionInput();
+        processDirectionInput(keyCode);
         inputProcessed = true;
       }
-    } else if (keyCode === ENTER) {
-      // Time's up OR player won, and wants to try again
-      directionGameActive = true;
-      gameStartTime = millis();
-      playerInputs = [];
-      drawPositions = [];
-      playerWon = false;
+    } else if (keyCode === ENTER && playerWon) {
+      // Start level 2
+      // Add your level 2 initialization here
+      // For example:
+      // initLevel2();
       inputProcessed = true;
     }
   }
@@ -108,7 +128,7 @@ function handleDirectionGameKeyPress() {
 function drawDirectionGame() {
   // Draw background and title
   imageMode(CORNER);
-  image(assets.backgrounds.forest, 0, 0, 720, 513);
+  image(assets.backgrounds.play1, 0, 0, 720, 513);
   titleComponent(assets.signs.level, 196, 48);
 
   // Calculate time remaining
@@ -116,16 +136,34 @@ function drawDirectionGame() {
   let timeRemaining = max(0, gameTimeLimit - timeElapsed);
   let seconds = floor(timeRemaining / 1000);
 
-  // Check win/lose conditions first
+  if (rightInput === 0) {
+    drawMeter(assets.meter.meter1);
+  } else if (rightInput === 1) {
+    drawMeter(assets.meter.meter2);
+  } else if (rightInput === 2) {
+    drawMeter(assets.meter.meter3);
+  } else if (rightInput === 3) {
+    drawMeter(assets.meter.meter4);
+  } else if (rightInput === 4) {
+    drawMeter(assets.meter.meter5);
+  }
+
+  // Draw the bar image at the bottom of the screen
+  imageMode(CENTER);
+  image(assets.signs.bar, width / 2, height - 72, 300, 128);
+
+  // Check win condition first
   if (playerWon) {
-    // Player won - display win background
+    // Player completed level 1 successfully
     imageMode(CORNER);
     image(assets.backgrounds.win, 0, 0, 720, 513);
+    titleComponent(assets.signs.playerWon, 196, 48);
+    lvl1Button.draw();
 
-    // Add restart button on win screen
-    resetButton.draw();
-
-    return; // Exit early to avoid drawing other elements
+    // Start button - only in START state
+    if (lvl1Button.isClicked()) {
+      gameState = "LEVEL 2";
+    }
   }
 
   if (timeRemaining <= 0) {
@@ -151,27 +189,7 @@ function drawDirectionGame() {
 
   // Draw the two birds facing each other
   let leftBirdX = width / 3 - 60;
-  let rightBirdX = (width / 3) * 2 + 60;
   let birdsY = height / 2 + 32;
-
-  // Draw the right bird (red.png) - always facing left
-  imageMode(CENTER);
-  image(assets.birds.red, rightBirdX, birdsY, 120, 120);
-
-  // Draw the player's bird with the current direction
-  if (currentBirdDirection === "left") {
-    image(assets.signs.left, leftBirdX, birdsY, 120, 120);
-  } else if (currentBirdDirection === "right") {
-    image(assets.signs.right, leftBirdX, birdsY, 120, 120);
-  } else if (currentBirdDirection === "up") {
-    image(assets.signs.up, leftBirdX, birdsY, 120, 120);
-  } else if (currentBirdDirection === "down") {
-    image(assets.signs.down, leftBirdX, birdsY, 120, 120);
-  }
-
-  // Draw the bar image at the bottom of the screen
-  imageMode(CENTER);
-  image(assets.signs.bar, width / 2, height - 72, 300, 128);
 
   // Position them closer together and lower on screen (on top of the bar)
   let startX = width / 2 - (gamePattern.length * 50) / 2 + 17; // Center the group of icons
@@ -196,4 +214,16 @@ function drawDirectionGame() {
 
   // Reset input processed flag each frame
   inputProcessed = false;
+}
+
+function drawLevel2Screen() {
+  imageMode(CORNER);
+  image(assets.backgrounds.play1, 0, 0, 720, 513);
+  titleComponent(assets.signs.level, 196, 48);
+}
+
+function drawLevel3Screen() {
+  imageMode(CORNER);
+  image(assets.backgrounds.play1, 0, 0, 720, 513);
+  titleComponent(assets.signs.level, 196, 48);
 }
