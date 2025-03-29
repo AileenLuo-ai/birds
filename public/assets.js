@@ -53,6 +53,9 @@ function preloadAssets() {
   assets.backgrounds.win = loadImage("assets/images/win.png");
   assets.backgrounds.lose = loadImage("assets/images/lose.png");
   assets.backgrounds.play1 = loadImage("assets/images/lvl1background.png");
+  assets.backgrounds.play2 = loadImage("assets/images/lvl2background.png");
+  assets.backgrounds.play3 = loadImage("assets/images/lvl3background.png");
+
   // directional sprites
   assets.signs.down = loadImage("assets/images/direction/down.png");
   assets.signs.left = loadImage("assets/images/direction/left.png");
