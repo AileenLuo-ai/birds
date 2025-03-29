@@ -11,6 +11,7 @@ let inputProcessed = false; // To prevent multiple inputs from a single key pres
 let currentBirdDirection = "right"; // Default direction for the player's bird
 let rightInput = 0;
 let wrongInput = 0;
+let level = 1;
 
 // Initialize the direction game
 function initDirectionGame() {
@@ -127,9 +128,17 @@ function handleDirectionGameKeyPress(keyCode) {
 // Draw the direction game
 function drawDirectionGame() {
   // Draw background and title
-  imageMode(CORNER);
-  image(assets.backgrounds.play1, 0, 0, 720, 513);
-  titleComponent(assets.signs.level, 196, 48);
+  if (gameState === "PLAY" && level === 1) {
+    imageMode(CORNER);
+    image(assets.backgrounds.play1, 0, 0, 720, 513);
+    titleComponent(assets.signs.level, 196, 48);
+  } else if (level === 2) {
+    imageMode(CORNER);
+    image(assets.backgrounds.play2, 0, 0, 720, 513);
+  } else if (level === 3) {
+    imageMode(CORNER);
+    image(assets.backgrounds.play3, 0, 0, 720, 513);
+  }
 
   // Calculate time remaining
   let timeElapsed = millis() - gameStartTime;
@@ -144,8 +153,6 @@ function drawDirectionGame() {
     drawMeter(assets.meter.meter3);
   } else if (rightInput === 3) {
     drawMeter(assets.meter.meter4);
-  } else if (rightInput === 4) {
-    drawMeter(assets.meter.meter5);
   }
 
   // Draw the bar image at the bottom of the screen
@@ -159,11 +166,7 @@ function drawDirectionGame() {
     image(assets.backgrounds.win, 0, 0, 720, 513);
     titleComponent(assets.signs.playerWon, 196, 48);
     lvl1Button.draw();
-
-    // Start button - only in START state
-    if (lvl1Button.isClicked()) {
-      gameState = "LEVEL 2";
-    }
+    drawMeter(assets.meter.meter5);
   }
 
   if (timeRemaining <= 0) {
@@ -214,16 +217,4 @@ function drawDirectionGame() {
 
   // Reset input processed flag each frame
   inputProcessed = false;
-}
-
-function drawLevel2Screen() {
-  imageMode(CORNER);
-  image(assets.backgrounds.play1, 0, 0, 720, 513);
-  titleComponent(assets.signs.level, 196, 48);
-}
-
-function drawLevel3Screen() {
-  imageMode(CORNER);
-  image(assets.backgrounds.play1, 0, 0, 720, 513);
-  titleComponent(assets.signs.level, 196, 48);
 }

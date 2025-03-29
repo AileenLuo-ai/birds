@@ -36,8 +36,8 @@ function setup() {
   resetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
-  lvl1Button = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT LEVEL");
-  lvl2Button = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT LEVEL");
+  lvl1Button = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
+  lvl2Button = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
   // Initialize direction game
   initDirectionGame();
 }
@@ -65,12 +65,8 @@ function draw() {
     case "LEVEL 2":
       drawLevel2Screen();
       break;
-    case "LEVEL 3":
-      drawLevel3Screen();
-      break;
   }
 }
-
 function titleComponent(assetName, w, h) {
   // caption title component
   imageMode(CENTER);
@@ -319,6 +315,11 @@ function mousePressed() {
     gameState = "SELECT";
     console.log("Changed to SELECT state");
     return;
+  }
+
+  // Start button - only in START state
+  if (lvl1Button.isClicked()) {
+    level = 2;
   }
 
   // Character Selection - only in SELECT state
