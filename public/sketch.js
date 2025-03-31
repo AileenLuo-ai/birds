@@ -31,8 +31,14 @@ function setup() {
     60,
     "INSTRUCTIONS"
   );
-  continueButton = new Button(width / 2, height - 72, 200, 60, "CONTINUE");
-  resetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
+  continueButton = new Button(
+    width / 2 + 128,
+    height - 72,
+    200,
+    60,
+    "CONTINUE"
+  );
+  resetButton = new Button(width / 2, height / 2, 200, 60, "RESTART");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
   lvlButton = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
@@ -296,11 +302,6 @@ function mousePressed() {
   }
   lastClickTime = currentTime;
 
-  // Global reset check - should be first
-  if (resetButton.draw() && resetButton.isClicked()) {
-    handleReset();
-  }
-
   if (nextButton.isClicked()) {
     instructionCounter++;
   }
@@ -311,6 +312,7 @@ function mousePressed() {
 
     if (lvlButton.isClicked() && gameState === "PLAY") {
       gameState = "LEVEL 2";
+      instructionCounter = 0;
     } else if (lvlButton.isClicked() && gameState === "LEVEL 2") {
       gameState = "LEVEL 3";
       instructionCounter = 0;
@@ -384,8 +386,9 @@ function mousePressed() {
   // PLAY state button handling - split by specific conditions
   if (gameState === "PLAY") {
     if (selectedRole === "MALE_BIRD") {
-      if (!final && continueButton && continueButton.isClicked()) {
+      if (continueButton && continueButton.isClicked()) {
         counter++;
+        console.log("counter", counter);
       }
 
       if (counter > 0) {
@@ -402,6 +405,11 @@ function mousePressed() {
         return;
       }
     }
+  }
+  // Global reset check - should be first
+  if (resetButton && resetButton.isClicked()) {
+    console.log("Reset button clicked");
+    handleReset();
   }
 }
 
