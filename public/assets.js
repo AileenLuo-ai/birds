@@ -52,6 +52,7 @@ function preloadAssets() {
   assets.backgrounds.wingman = loadImage("assets/images/level1-wingman.png");
   assets.backgrounds.win = loadImage("assets/images/win.png");
   assets.backgrounds.win2 = loadImage("assets/images/win2.png");
+  assets.backgrounds.win3 = loadImage("assets/images/win3.png");
   assets.backgrounds.lose = loadImage("assets/images/lose.png");
   assets.backgrounds.play1 = loadImage("assets/images/lvl1background.png");
   assets.backgrounds.play2 = loadImage("assets/images/lvl2background.png");

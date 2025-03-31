@@ -114,12 +114,6 @@ function handleDirectionGameKeyPress(keyCode) {
         processDirectionInput(keyCode);
         inputProcessed = true;
       }
-    } else if (keyCode === ENTER && playerWon) {
-      // Start level 2
-      // Add your level 2 initialization here
-      // For example:
-      // initLevel2();
-      inputProcessed = true;
     }
   }
 }
@@ -154,7 +148,13 @@ function drawDirectionGame(background, winningImage, level) {
     // Player completed level 1 successfully
     imageMode(CORNER);
     image(winningImage, 0, 0, 720, 513);
-    lvl1Button.draw();
+
+    if (level < 3) {
+      lvlButton.draw();
+    } else {
+      resetButton.draw();
+    }
+
     drawMeter(assets.meter.meter5);
     rightInput = 0;
     wrongInput = 0;
@@ -171,9 +171,9 @@ function drawDirectionGame(background, winningImage, level) {
     // Add text on top of the lose background if needed
     fill(255);
     textSize(36);
-    text("TIME'S UP!", width / 2, height / 2 - 30);
+    text("TIME'S UP!", width / 2, height - 72);
     textSize(24);
-    text("Press ENTER to try again", width / 2, height / 2 + 30);
+    resetButton.draw();
 
     return; // Exit early to avoid drawing other elements
   }
@@ -214,14 +214,27 @@ function drawDirectionGame(background, winningImage, level) {
 }
 
 function drawLevel2Screen() {
-  imageMode(CORNER);
-  image(assets.backgrounds.forest, 0, 0, 720, 513);
-  instructionSizing(assets.instructions.level2);
-  nextButton.draw();
-
-  if (instructionCounter === 2) {
+  if (instructionCounter === 0) {
+    imageMode(CORNER);
+    image(assets.backgrounds.forest, 0, 0, 720, 513);
+    instructionSizing(assets.instructions.level2);
+    nextButton.draw();
+  } else if (instructionCounter === 1) {
     imageMode(CORNER);
     image(assets.backgrounds.play2, 0, 0, 720, 513);
     drawDirectionGame(assets.backgrounds.play2, assets.backgrounds.win2, 2);
+  }
+}
+
+function drawLevel3Screen() {
+  if (instructionCounter === 0) {
+    imageMode(CORNER);
+    image(assets.backgrounds.forest, 0, 0, 720, 513);
+    instructionSizing(assets.instructions.level3);
+    nextButton.draw();
+  } else if (instructionCounter === 1) {
+    imageMode(CORNER);
+    image(assets.backgrounds.play3, 0, 0, 720, 513);
+    drawDirectionGame(assets.backgrounds.play3, assets.backgrounds.win3, 3);
   }
 }

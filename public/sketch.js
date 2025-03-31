@@ -12,8 +12,7 @@ let playButton;
 let resetButton;
 let instructionCounter = 0;
 let nextButton;
-let lvl1Button;
-let lvl2Button;
+let lvlButton;
 
 function preload() {
   preloadAssets(); // Load assets from assets.js
@@ -36,8 +35,7 @@ function setup() {
   resetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
-  lvl1Button = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
-  lvl2Button = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
+  lvlButton = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
   // Initialize direction game
   initDirectionGame();
 }
@@ -279,18 +277,20 @@ function mousePressed() {
   }
   lastClickTime = currentTime;
 
-  if (gameState === "INSTRUCTION" && nextButton.isClicked()) {
+  if (nextButton.isClicked()) {
     instructionCounter++;
   }
 
-  if (gameState === "LEVEL 2" && nextButton.isClicked()) {
-    instructionCounter = 2;
-  }
-
-  if (playerWon && gameState === "PLAY" && lvl1Button.isClicked()) {
+  if (playerWon) {
     timeRemaining = 30000;
     playerWon = false;
-    gameState = "LEVEL 2";
+
+    if (lvlButton.isClicked() && gameState === "PLAY") {
+      gameState = "LEVEL 2";
+    } else if (lvlButton.isClicked() && gameState === "LEVEL 2") {
+      gameState = "LEVEL 3";
+      instructionCounter = 0;
+    }
   }
 
   // Start button - only in START state
@@ -317,7 +317,7 @@ function mousePressed() {
     directionGameActive
   ) {
     // Only process clicks if the player has won and is clicking the reset button
-    if (playerWon && resetButton && resetButton.isClicked()) {
+    if (resetButton.isClicked()) {
       resetGame();
     }
     // Ignore all other clicks during the direction game
@@ -327,7 +327,6 @@ function mousePressed() {
   // Start button - only in START state
   if (gameState === "START" && startButton && startButton.isClicked()) {
     gameState = "SELECT";
-    console.log("Changed to SELECT state");
     return;
   }
 
@@ -344,7 +343,6 @@ function mousePressed() {
       gameState = "PLAY";
       counter = 0;
       final = false;
-      console.log("Selected WINGMAN, reset counter to 0, final to false");
       return;
     }
 
@@ -359,7 +357,6 @@ function mousePressed() {
       gameState = "PLAY";
       counter = 0;
       final = false;
-      console.log("Selected MALE_BIRD, reset counter to 0, final to false");
       return;
     }
     return; // Exit if we're in SELECT but didn't click on a character
@@ -389,7 +386,7 @@ function mousePressed() {
         return;
       }
 
-      if (final && resetButton && resetButton.isClicked()) {
+      if (resetButton.isClicked()) {
         resetGame();
         return;
       }
@@ -404,9 +401,9 @@ function resetGame() {
   final = false;
   directionGameActive = false;
   playerWon = false;
+  instructionCounter = 0;
   playerInputs = [];
   drawPositions = [];
-  console.log("FULL GAME RESET - Back to character selection");
 }
 
 // Add keyPressed function to handle keyboard input
