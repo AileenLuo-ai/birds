@@ -37,13 +37,18 @@ let playerInputs = []; // To store the player's inputs
 let drawPositions = []; // To store what should be drawn at each position
 let directionGameActive = false; // Track if direction game is active
 let gameStartTime = 0; // To track when the direction game started
-let gameTimeLimit = 35000; // 30 seconds in milliseconds
+let gameTimeLimit = 35000; // 35 seconds in milliseconds
 let playerWon = false; // Track if player has won the direction game
 let inputProcessed = false; // To prevent multiple inputs from a single key press
 let currentBirdDirection = "right"; // Default direction for the player's bird
 let rightInput = 0;
 let wrongInput = 0;
 let timeRemaining = gameTimeLimit;
+
+function resetGameTimer() {
+  gameStartTime = millis();
+  console.log("Timer reset, new start time:", gameStartTime);
+}
 
 // Initialize the direction game
 function initDirectionGame() {
@@ -52,9 +57,7 @@ function initDirectionGame() {
   drawPositions = [];
   playerWon = false;
   currentBirdDirection = "right";
-  // Reset game time
-  gameStartTime = millis();
-  timeRemaining = gameTimeLimit;
+  resetGameTimer();
   // Randomly select a pattern type
   const patternTypes = Object.keys(patterns);
   currentPatternType =
@@ -173,7 +176,6 @@ function drawDirectionGame(background, winningImage, level) {
   let timeElapsed = millis() - gameStartTime;
   let timeRemaining = max(0, gameTimeLimit - timeElapsed);
   let seconds = floor(timeRemaining / 1000);
-  gameStartTime = 0;
 
   if (rightInput === 0) {
     drawMeter(assets.meter.meter1);
@@ -210,19 +212,17 @@ function drawDirectionGame(background, winningImage, level) {
     currentBirdDirection = "right";
   }
 
-  if (timeRemaining <= 0) {
+  // Check time's up condition
+  if (timeRemaining <= 0 && !playerWon) {
     // Time's up - display lose background
     imageMode(CORNER);
     image(assets.backgrounds.lose, 0, 0, 720, 513);
-
-    // Add text on top of the lose background if needed
     fill(255);
     textSize(36);
     text("TIME'S UP!", width / 2, height - 72);
     textSize(24);
     resetButton.draw();
-
-    return; // Exit early to avoid drawing other elements
+    return;
   }
 
   // Display time remaining
@@ -267,11 +267,11 @@ function drawLevel2Screen() {
     instructionSizing(assets.instructions.level2);
     nextButton.draw();
   } else if (instructionCounter === 1) {
-    // Reset time when actually starting level 2
     if (!directionGameActive) {
-      gameStartTime = millis();
-      timeRemaining = gameTimeLimit;
       directionGameActive = true;
+      resetGameTimer();
+      playerInputs = [];
+      drawPositions = [];
     }
     imageMode(CORNER);
     image(assets.backgrounds.play2, 0, 0, 720, 513);
@@ -286,11 +286,11 @@ function drawLevel3Screen() {
     instructionSizing(assets.instructions.level3);
     nextButton.draw();
   } else if (instructionCounter === 1) {
-    // Reset time when actually starting level 3
     if (!directionGameActive) {
-      gameStartTime = millis();
-      timeRemaining = gameTimeLimit;
       directionGameActive = true;
+      resetGameTimer();
+      playerInputs = [];
+      drawPositions = [];
     }
     imageMode(CORNER);
     image(assets.backgrounds.play3, 0, 0, 720, 513);
