@@ -22,7 +22,7 @@ function setup() {
   createCanvas(720, 513);
   textAlign(CENTER, CENTER);
 
-  // Modify button positions to avoid overlap
+  // Ensure the button is created AFTER canvas is set up
   startButton = new Button(width / 2, height - 140, 200, 60, "START");
   instructionButton = new Button(
     width / 2,
@@ -31,14 +31,8 @@ function setup() {
     60,
     "INSTRUCTIONS"
   );
-  continueButton = new Button(
-    width / 2 + 128,
-    height - 72,
-    200,
-    60,
-    "CONTINUE"
-  ); // Move continue button right
-  resetButton = new Button(width / 2 - 128, height - 72, 200, 60, "RESTART"); // Move reset button left
+  continueButton = new Button(width / 2, height - 72, 200, 60, "CONTINUE");
+  resetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
   lvlButton = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
@@ -289,6 +283,7 @@ function handleReset() {
   wrongInput = 0;
   currentBirdDirection = "right";
   console.log("Game reset to character selection");
+  return;
 }
 
 // Modify the mousePressed function to use the new reset handler
@@ -302,9 +297,8 @@ function mousePressed() {
   lastClickTime = currentTime;
 
   // Global reset check - should be first
-  if (resetButton.isClicked()) {
+  if (resetButton.draw() && resetButton.isClicked()) {
     handleReset();
-    return;
   }
 
   if (nextButton.isClicked()) {
