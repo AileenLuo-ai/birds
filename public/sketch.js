@@ -196,7 +196,7 @@ function drawMaleBirdScreen() {
     }
 
     // Draw direction game
-    drawDirectionGame();
+    drawDirectionGame(assets.backgrounds.play1, assets.backgrounds.win, 1);
     return;
   }
 }
@@ -281,6 +281,10 @@ function mousePressed() {
 
   if (gameState === "INSTRUCTION" && nextButton.isClicked()) {
     instructionCounter++;
+  }
+
+  if (gameState === "LEVEL 2" && nextButton.isClicked()) {
+    instructionCounter = 2;
   }
 
   if (playerWon && gameState === "PLAY" && lvl1Button.isClicked()) {
@@ -408,12 +412,7 @@ function resetGame() {
 // Add keyPressed function to handle keyboard input
 function keyPressed() {
   // Only process key events for the direction game
-  if (
-    gameState === "PLAY" &&
-    selectedRole === "MALE_BIRD" &&
-    final &&
-    directionGameActive
-  ) {
+  if (selectedRole === "MALE_BIRD") {
     handleDirectionGameKeyPress(keyCode);
   }
 

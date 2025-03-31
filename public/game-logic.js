@@ -125,11 +125,10 @@ function handleDirectionGameKeyPress(keyCode) {
 }
 
 // Draw the direction game
-function drawDirectionGame() {
+function drawDirectionGame(background, winningImage, level) {
   // Draw background and title
   imageMode(CORNER);
-  image(assets.backgrounds.play1, 0, 0, 720, 513);
-  titleComponent(assets.signs.level, 196, 48);
+  image(background, 0, 0, 720, 513);
 
   // Calculate time remaining
   let timeElapsed = millis() - gameStartTime;
@@ -154,7 +153,7 @@ function drawDirectionGame() {
   if (playerWon) {
     // Player completed level 1 successfully
     imageMode(CORNER);
-    image(assets.backgrounds.win, 0, 0, 720, 513);
+    image(winningImage, 0, 0, 720, 513);
     lvl1Button.draw();
     drawMeter(assets.meter.meter5);
     rightInput = 0;
@@ -216,5 +215,13 @@ function drawDirectionGame() {
 
 function drawLevel2Screen() {
   imageMode(CORNER);
-  image(assets.backgrounds.play2, 0, 0, 720, 513);
+  image(assets.backgrounds.forest, 0, 0, 720, 513);
+  instructionSizing(assets.instructions.level2);
+  nextButton.draw();
+
+  if (instructionCounter === 2) {
+    imageMode(CORNER);
+    image(assets.backgrounds.play2, 0, 0, 720, 513);
+    drawDirectionGame(assets.backgrounds.play2, assets.backgrounds.win2, 2);
+  }
 }
