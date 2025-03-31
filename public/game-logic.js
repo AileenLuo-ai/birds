@@ -172,11 +172,55 @@ function drawDirectionGame(background, winningImage, level) {
   imageMode(CORNER);
   image(background, 0, 0, 720, 513);
 
-  // Calculate time remaining
-  let timeElapsed = millis() - gameStartTime;
-  let timeRemaining = max(0, gameTimeLimit - timeElapsed);
-  let seconds = floor(timeRemaining / 1000);
+  // Check win condition first
+  if (playerWon) {
+    // Player completed level successfully
+    imageMode(CORNER);
+    image(winningImage, 0, 0, 720, 513);
 
+    if (level < 3) {
+      lvlButton.draw();
+    } else {
+      resetButton.draw();
+    }
+
+    drawMeter(assets.meter.meter5);
+    // Reset inputs for next level
+    playerInputs = [];
+    drawPositions = [];
+    rightInput = 0;
+    wrongInput = 0;
+    return; // Exit early to avoid drawing timer and other game elements
+  }
+
+  // Only calculate and show timer during active gameplay
+  if (directionGameActive && !playerWon) {
+    // Calculate time remaining
+    let timeElapsed = millis() - gameStartTime;
+    let timeRemaining = max(0, gameTimeLimit - timeElapsed);
+    let seconds = floor(timeRemaining / 1000);
+
+    // Check time's up condition
+    if (timeRemaining <= 0) {
+      // Time's up - display lose background
+      imageMode(CORNER);
+      image(assets.backgrounds.lose, 0, 0, 720, 513);
+      fill(255);
+      textSize(36);
+      text("TIME'S UP!", width / 2, height - 72);
+      textSize(24);
+      resetButton.draw();
+      return;
+    }
+
+    // Only display timer during active gameplay
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(24);
+    text("Time: " + seconds + "s", width / 2, 96);
+  }
+
+  // Draw the meter
   if (rightInput === 0) {
     drawMeter(assets.meter.meter1);
   } else if (rightInput === 1) {
@@ -190,46 +234,6 @@ function drawDirectionGame(background, winningImage, level) {
   // Draw the bar image at the bottom of the screen
   imageMode(CENTER);
   image(assets.signs.bar, width / 2, height - 72, 300, 128);
-
-  // Check win condition first
-  if (playerWon) {
-    // Player completed level 1 successfully
-    imageMode(CORNER);
-    image(winningImage, 0, 0, 720, 513);
-
-    if (level < 3) {
-      lvlButton.draw();
-    } else {
-      resetButton.draw();
-      return;
-    }
-
-    drawMeter(assets.meter.meter5);
-    rightInput = 0;
-    wrongInput = 0;
-    playerInputs = [];
-    drawPositions = [];
-    currentBirdDirection = "right";
-  }
-
-  // Check time's up condition
-  if (timeRemaining <= 0 && !playerWon) {
-    // Time's up - display lose background
-    imageMode(CORNER);
-    image(assets.backgrounds.lose, 0, 0, 720, 513);
-    fill(255);
-    textSize(36);
-    text("TIME'S UP!", width / 2, height - 72);
-    textSize(24);
-    resetButton.draw();
-    return;
-  }
-
-  // Display time remaining
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(24);
-  text("Time: " + seconds + "s", width / 2, 96);
 
   // Draw the two birds facing each other
   let leftBirdX = width / 3 - 60;
@@ -272,6 +276,8 @@ function drawLevel2Screen() {
       resetGameTimer();
       playerInputs = [];
       drawPositions = [];
+      rightInput = 0;
+      wrongInput = 0;
     }
     imageMode(CORNER);
     image(assets.backgrounds.play2, 0, 0, 720, 513);
@@ -291,9 +297,44 @@ function drawLevel3Screen() {
       resetGameTimer();
       playerInputs = [];
       drawPositions = [];
+      rightInput = 0;
+      wrongInput = 0;
     }
     imageMode(CORNER);
     image(assets.backgrounds.play3, 0, 0, 720, 513);
     drawDirectionGame(assets.backgrounds.play3, assets.backgrounds.win3, 3);
   }
+}
+
+// Update the mousePressed function for level transitions
+function mousePressed() {
+  // ... existing code ...
+
+  if (playerWon) {
+    if (lvlButton.isClicked() && gameState === "PLAY") {
+      gameState = "LEVEL 2";
+      instructionCounter = 0;
+      directionGameActive = false;
+      resetGameTimer();
+      playerWon = false;
+      // Reset game state for new level
+      playerInputs = [];
+      drawPositions = [];
+      rightInput = 0;
+      wrongInput = 0;
+    } else if (lvlButton.isClicked() && gameState === "LEVEL 2") {
+      gameState = "LEVEL 3";
+      instructionCounter = 0;
+      directionGameActive = false;
+      resetGameTimer();
+      playerWon = false;
+      // Reset game state for new level
+      playerInputs = [];
+      drawPositions = [];
+      rightInput = 0;
+      wrongInput = 0;
+    }
+  }
+
+  // ... rest of existing code ...
 }
