@@ -307,15 +307,20 @@ function mousePressed() {
   }
 
   if (playerWon) {
-    timeRemaining = 30000;
-    playerWon = false;
-
     if (lvlButton.isClicked() && gameState === "PLAY") {
       gameState = "LEVEL 2";
       instructionCounter = 0;
+      // Reset game time for new level
+      gameStartTime = millis();
+      timeRemaining = gameTimeLimit;
+      playerWon = false;
     } else if (lvlButton.isClicked() && gameState === "LEVEL 2") {
       gameState = "LEVEL 3";
       instructionCounter = 0;
+      // Reset game time for new level
+      gameStartTime = millis();
+      timeRemaining = gameTimeLimit;
+      playerWon = false;
     }
   }
 

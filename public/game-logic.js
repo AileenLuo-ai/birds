@@ -1,3 +1,35 @@
+// Add the patterns object at the top of the file
+const patterns = {
+  worm: {
+    1: ["up", "up", "up", "up"],
+    2: ["up", "up", "up", "up"],
+    3: ["up", "up", "up", "up"],
+  },
+  stick: {
+    1: ["up", "up", "up", "up"],
+    2: ["up", "up", "up", "up"],
+    3: ["up", "up", "up", "up"],
+  },
+  egg: {
+    1: ["up", "up", "up", "up"],
+    2: ["up", "up", "up", "up"],
+    3: ["up", "up", "up", "up"],
+  },
+  birdhouse: {
+    1: ["up", "up", "up", "up"],
+    2: ["up", "up", "up", "up"],
+    3: ["up", "up", "up", "up"],
+  },
+  nest: {
+    1: ["up", "up", "up", "up"],
+    2: ["up", "up", "up", "up"],
+    3: ["up", "up", "up", "up"],
+  },
+};
+
+// Add a variable to track the current pattern type
+let currentPatternType = "worm"; // default pattern
+
 // Direction game variables
 let gamePattern = ["up", "down", "up", "down"];
 
@@ -11,6 +43,7 @@ let inputProcessed = false; // To prevent multiple inputs from a single key pres
 let currentBirdDirection = "right"; // Default direction for the player's bird
 let rightInput = 0;
 let wrongInput = 0;
+let timeRemaining = gameTimeLimit;
 
 // Initialize the direction game
 function initDirectionGame() {
@@ -19,6 +52,13 @@ function initDirectionGame() {
   drawPositions = [];
   playerWon = false;
   currentBirdDirection = "right";
+  // Reset game time
+  gameStartTime = millis();
+  timeRemaining = gameTimeLimit;
+  // Randomly select a pattern type
+  const patternTypes = Object.keys(patterns);
+  currentPatternType =
+    patternTypes[Math.floor(Math.random() * patternTypes.length)];
 }
 
 // Process a single direction input
@@ -50,9 +90,14 @@ function processDirectionInput(keyCode) {
   // Add this input to player's sequence
   playerInputs.push(direction);
 
+  // Get the current level's pattern
+  const currentLevel =
+    gameState === "PLAY" ? 1 : gameState === "LEVEL 2" ? 2 : 3;
+  const currentPattern = patterns[currentPatternType][currentLevel];
+
   // Check if this input matches the expected pattern
   let currentIndex = playerInputs.length - 1;
-  if (direction === gamePattern[currentIndex]) {
+  if (direction === currentPattern[currentIndex]) {
     // Correct input, draw the corresponding bird
     drawPositions.push(direction);
     rightInput++;
@@ -62,8 +107,8 @@ function processDirectionInput(keyCode) {
     wrongInput++;
   }
 
-  // Check if we've reached 4 inputs
-  if (playerInputs.length === 4) {
+  // Check if we've reached the end of the pattern
+  if (playerInputs.length === currentPattern.length) {
     rightInput = 0;
 
     if (wrongInput === 0) {
@@ -128,6 +173,7 @@ function drawDirectionGame(background, winningImage, level) {
   let timeElapsed = millis() - gameStartTime;
   let timeRemaining = max(0, gameTimeLimit - timeElapsed);
   let seconds = floor(timeRemaining / 1000);
+  gameStartTime = 0;
 
   if (rightInput === 0) {
     drawMeter(assets.meter.meter1);
@@ -221,6 +267,12 @@ function drawLevel2Screen() {
     instructionSizing(assets.instructions.level2);
     nextButton.draw();
   } else if (instructionCounter === 1) {
+    // Reset time when actually starting level 2
+    if (!directionGameActive) {
+      gameStartTime = millis();
+      timeRemaining = gameTimeLimit;
+      directionGameActive = true;
+    }
     imageMode(CORNER);
     image(assets.backgrounds.play2, 0, 0, 720, 513);
     drawDirectionGame(assets.backgrounds.play2, assets.backgrounds.win2, 2);
@@ -234,6 +286,12 @@ function drawLevel3Screen() {
     instructionSizing(assets.instructions.level3);
     nextButton.draw();
   } else if (instructionCounter === 1) {
+    // Reset time when actually starting level 3
+    if (!directionGameActive) {
+      gameStartTime = millis();
+      timeRemaining = gameTimeLimit;
+      directionGameActive = true;
+    }
     imageMode(CORNER);
     image(assets.backgrounds.play3, 0, 0, 720, 513);
     drawDirectionGame(assets.backgrounds.play3, assets.backgrounds.win3, 3);
