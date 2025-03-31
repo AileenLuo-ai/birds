@@ -22,7 +22,7 @@ function setup() {
   createCanvas(720, 513);
   textAlign(CENTER, CENTER);
 
-  // Ensure the button is created AFTER canvas is set up
+  // Modify button positions to avoid overlap
   startButton = new Button(width / 2, height - 140, 200, 60, "START");
   instructionButton = new Button(
     width / 2,
@@ -31,8 +31,14 @@ function setup() {
     60,
     "INSTRUCTIONS"
   );
-  continueButton = new Button(width / 2, height - 72, 200, 60, "CONTINUE");
-  resetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
+  continueButton = new Button(
+    width / 2 + 128,
+    height - 72,
+    200,
+    60,
+    "CONTINUE"
+  ); // Move continue button right
+  resetButton = new Button(width / 2 - 128, height - 72, 200, 60, "RESTART"); // Move reset button left
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
   lvlButton = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
@@ -268,14 +274,38 @@ class Button {
   }
 }
 
+// Add this new function
+function handleReset() {
+  gameState = "SELECT";
+  selectedRole = "";
+  counter = 0;
+  final = false;
+  directionGameActive = false;
+  playerWon = false;
+  instructionCounter = 0;
+  playerInputs = [];
+  drawPositions = [];
+  rightInput = 0;
+  wrongInput = 0;
+  currentBirdDirection = "right";
+  console.log("Game reset to character selection");
+}
+
+// Modify the mousePressed function to use the new reset handler
 function mousePressed() {
-  // Strong debounce protection - prevents multiple clicks being registered too quickly
+  // Strong debounce protection
   const currentTime = millis();
   if (currentTime - lastClickTime < CLICK_DELAY) {
     console.log("Debounced click - too soon after last click");
-    return; // Ignore clicks that happen too soon after the previous
+    return;
   }
   lastClickTime = currentTime;
+
+  // Global reset check - should be first
+  if (resetButton.isClicked()) {
+    handleReset();
+    return;
+  }
 
   if (nextButton.isClicked()) {
     instructionCounter++;
@@ -316,11 +346,6 @@ function mousePressed() {
     final &&
     directionGameActive
   ) {
-    // Only process clicks if the player has won and is clicking the reset button
-    if (resetButton.isClicked()) {
-      resetGame();
-    }
-    // Ignore all other clicks during the direction game
     return;
   }
 
@@ -375,41 +400,27 @@ function mousePressed() {
     }
 
     if (selectedRole === "WINGMAN") {
-      // Continue button - only check when NOT in final state
       if (!final && continueButton && continueButton.isClicked()) {
         counter++;
-
-        // If we've gone through all the counter states, set to final
         if (counter > 2) {
           final = true;
         }
         return;
       }
-
-      if (resetButton.isClicked()) {
-        resetGame();
-        return;
-      }
     }
   }
-}
-// Helper function to reset the game state
-function resetGame() {
-  gameState = "SELECT";
-  selectedRole = "";
-  counter = 0;
-  final = false;
-  directionGameActive = false;
-  playerWon = false;
-  instructionCounter = 0;
-  playerInputs = [];
-  drawPositions = [];
 }
 
 // Add keyPressed function to handle keyboard input
 function keyPressed() {
   // Only process key events for the direction game
-  if (selectedRole === "MALE_BIRD") {
+  if (
+    (selectedRole === "MALE_BIRD" &&
+      directionGameActive &&
+      gameState === "PLAY") ||
+    gameState === "LEVEL 2" ||
+    gameState === "LEVEL 3"
+  ) {
     handleDirectionGameKeyPress(keyCode);
   }
 

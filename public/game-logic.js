@@ -153,6 +153,7 @@ function drawDirectionGame(background, winningImage, level) {
       lvlButton.draw();
     } else {
       resetButton.draw();
+      return;
     }
 
     drawMeter(assets.meter.meter5);
