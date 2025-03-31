@@ -144,8 +144,6 @@ function drawDirectionGame() {
     drawMeter(assets.meter.meter3);
   } else if (rightInput === 3) {
     drawMeter(assets.meter.meter4);
-  } else if (rightInput === 4) {
-    drawMeter(assets.meter.meter5);
   }
 
   // Draw the bar image at the bottom of the screen
@@ -157,13 +155,13 @@ function drawDirectionGame() {
     // Player completed level 1 successfully
     imageMode(CORNER);
     image(assets.backgrounds.win, 0, 0, 720, 513);
-    titleComponent(assets.signs.playerWon, 196, 48);
     lvl1Button.draw();
-
-    // Start button - only in START state
-    if (lvl1Button.isClicked()) {
-      gameState = "LEVEL 2";
-    }
+    drawMeter(assets.meter.meter5);
+    rightInput = 0;
+    wrongInput = 0;
+    playerInputs = [];
+    drawPositions = [];
+    currentBirdDirection = "right";
   }
 
   if (timeRemaining <= 0) {
@@ -218,12 +216,5 @@ function drawDirectionGame() {
 
 function drawLevel2Screen() {
   imageMode(CORNER);
-  image(assets.backgrounds.play1, 0, 0, 720, 513);
-  titleComponent(assets.signs.level, 196, 48);
-}
-
-function drawLevel3Screen() {
-  imageMode(CORNER);
-  image(assets.backgrounds.play1, 0, 0, 720, 513);
-  titleComponent(assets.signs.level, 196, 48);
+  image(assets.backgrounds.play2, 0, 0, 720, 513);
 }

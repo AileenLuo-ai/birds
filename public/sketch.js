@@ -36,8 +36,8 @@ function setup() {
   resetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
-  lvl1Button = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT LEVEL");
-  lvl2Button = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT LEVEL");
+  lvl1Button = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
+  lvl2Button = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
   // Initialize direction game
   initDirectionGame();
 }
@@ -281,6 +281,12 @@ function mousePressed() {
 
   if (gameState === "INSTRUCTION" && nextButton.isClicked()) {
     instructionCounter++;
+  }
+
+  if (playerWon && gameState === "PLAY" && lvl1Button.isClicked()) {
+    timeRemaining = 30000;
+    playerWon = false;
+    gameState = "LEVEL 2";
   }
 
   // Start button - only in START state
