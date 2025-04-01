@@ -38,7 +38,7 @@ function setup() {
     "CONTINUE"
   );
   resetButton = new Button(width / 2, height / 2, 200, 60, "RESTART");
-  wingmanResetButton = new Button(width - 72, height - 72, 200, 60, "RESTART");
+  wingmanResetButton = new Button(width + 140, 128, 200, 60, "RESTART");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
   lvlButton = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
@@ -238,29 +238,16 @@ function drawWingmanScreen() {
       image(assets.backgrounds.wing3, 0, 0, width, height);
     }
 
+    wingmanResetButton.draw();
+
     // Draw the pattern based on the current pattern type
     if (currentPatternType && assets.patterns[currentPatternType]) {
       console.log("currentPatternType", currentPatternType);
       // Center the pattern image
       const patternImage = assets.patterns[currentPatternType];
-      const x = width / 2 + 118;
+      const x = width / 2 + 125;
       const y = height / 2 - 72;
-      image(patternImage, x, y, 72, 72);
-    }
-
-    // Draw synced timer using p5.party shared state
-    textFont(assets.fonts.bodyText);
-    textSize(24);
-    fill(255);
-    textAlign(CENTER);
-    text(`Time: ${ceil(party.timeRemaining / 1000)}s`, width / 2 + 128, 128);
-
-    // Check for game over using p5.party shared state
-    if (!party.isGameActive || party.timeRemaining <= 0) {
-      // Game over - show lose screen
-      image(assets.backgrounds.lose, 0, 0, width, height);
-      wingmanResetButton.draw();
-      return;
+      image(patternImage, x, y, 64, 64);
     }
 
     // Check if male bird won using p5.party shared state
@@ -278,8 +265,6 @@ function drawWingmanScreen() {
     }
 
     console.log("pattern type", gamePattern);
-    // Add restart button at the bottom
-    wingmanResetButton.draw();
   }
 }
 
@@ -352,6 +337,7 @@ function mousePressed() {
 
   if (nextButton.isClicked()) {
     instructionCounter++;
+    console.log("instructionCounter", instructionCounter);
   }
 
   // Handle level transitions
@@ -360,15 +346,26 @@ function mousePressed() {
       gameState = "LEVEL 2";
       instructionCounter = 0;
       // Reset game time for new level
-      gameStartTime = millis();
-      timeRemaining = gameTimeLimit;
+      resetGameTimer();
       playerWon = false;
     } else if (lvlButton.isClicked() && gameState === "LEVEL 2") {
       gameState = "LEVEL 3";
       instructionCounter = 0;
       // Reset game time for new level
-      gameStartTime = millis();
-      timeRemaining = gameTimeLimit;
+      resetGameTimer();
+      playerWon = false;
+    }
+  }
+
+  // Handle wingman level transitions
+  if (selectedRole === "WINGMAN" && party.playerWon) {
+    if (lvlButton.isClicked() && gameState === "PLAY") {
+      gameState = "LEVEL 2";
+      instructionCounter = 0;
+      playerWon = false;
+    } else if (lvlButton.isClicked() && gameState === "LEVEL 2") {
+      gameState = "LEVEL 3";
+      instructionCounter = 0;
       playerWon = false;
     }
   }
@@ -454,14 +451,17 @@ function mousePressed() {
       }
     }
 
-    if (selectedRole === "WINGMAN") {
-      if (!final && continueButton && continueButton.isClicked()) {
-        counter++;
-        if (counter > 2) {
-          final = true;
-        }
-        return;
+    if (
+      selectedRole === "WINGMAN" &&
+      continueButton &&
+      continueButton.isClicked()
+    ) {
+      counter++;
+      console.log("counter", counter);
+      if (counter > 2) {
+        final = true;
       }
+      return;
     }
   }
   // Global reset check - should be first
