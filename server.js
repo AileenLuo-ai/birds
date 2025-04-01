@@ -1,103 +1,92 @@
 const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const cors = require("cors");
-
-// App setup
+const path = require("path");
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*", // Allow all origins, change if needed
-    methods: ["GET", "POST"],
-  },
-});
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
+const port = 3000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use((req, res, next) => {
-  res.setHeader("Content-Security-Policy", "img-src 'self' data:;");
-  next();
-});
-
-// Imports
+// Serve static files from the public directory
 app.use(express.static("public"));
 
-// Room management
-const rooms = {};
-
-// Endpoint to create a room
-app.post("/create-room", (req, res) => {
-  const roomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
-  rooms[roomCode] = { players: [], timer: 0 };
-  res.json({ roomCode });
-  console.log(`Room created: ${roomCode}`);
+// Route for the root path
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Socket.io handling
-io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+// Track connected players and their roles
+let connectedPlayers = new Map();
 
-  // Join room
-  socket.on("join-room", (roomCode) => {
-    if (rooms[roomCode]) {
-      socket.join(roomCode);
-      rooms[roomCode].players.push(socket.id);
-      io.to(roomCode).emit("player-count", rooms[roomCode].players.length);
-      io.to(roomCode).emit("player-joined", rooms[roomCode].players);
-      console.log(`${socket.id} joined room: ${roomCode}`);
-    } else {
-      socket.emit("error", "Room not found");
-    }
+io.on("connection", (socket) => {
+  console.log("A player connected");
+
+  // Check if we already have 2 players
+  if (connectedPlayers.size >= 2) {
+    socket.emit("partyFull");
+    socket.disconnect();
+    return;
+  }
+
+  // Add player to connected players
+  connectedPlayers.set(socket.id, { role: null });
+  socket.emit("playerJoined", {
+    playerId: socket.id,
+    playerCount: connectedPlayers.size,
   });
 
-  // Timer sync
-  socket.on("sync-timer", ({ roomCode, timer }) => {
-    if (rooms[roomCode]) {
-      rooms[roomCode].timer = timer;
-      io.to(roomCode).emit("timer-updated", timer);
-      console.log(`Timer updated for room ${roomCode}: ${timer}`);
+  // Handle player role selection
+  socket.on("selectRole", (role) => {
+    // Check if role is already taken
+    const roleTaken = Array.from(connectedPlayers.values()).some(
+      (player) => player.role === role
+    );
+
+    if (roleTaken) {
+      socket.emit("roleTaken", { role });
+      return;
     }
+
+    // Update player's role
+    connectedPlayers.get(socket.id).role = role;
+    socket.emit("roleSelected", { playerId: socket.id, role: role });
+    io.emit("roleSelected", { playerId: socket.id, role: role });
+  });
+
+  // Handle game state updates
+  socket.on("updateGameState", (gameState) => {
+    // Broadcast the game state to all connected clients
+    io.emit("gameStateUpdated", gameState);
+  });
+
+  // Handle timer updates
+  socket.on("updateTimer", (timeRemaining) => {
+    // Broadcast the timer update to all connected clients
+    io.emit("timerUpdated", timeRemaining);
+  });
+
+  // Handle game over
+  socket.on("gameOver", (data) => {
+    // Broadcast game over to all connected clients
+    io.emit("gameOver", data);
+  });
+
+  // Handle game reset
+  socket.on("gameReset", () => {
+    // Broadcast game reset to all connected clients
+    io.emit("gameReset");
   });
 
   // Handle disconnection
   socket.on("disconnect", () => {
-    for (const roomCode in rooms) {
-      rooms[roomCode].players = rooms[roomCode].players.filter(
-        (id) => id !== socket.id
-      );
-      io.to(roomCode).emit("player-count", rooms[roomCode].players.length);
-      io.to(roomCode).emit("player-left", rooms[roomCode].players);
-    }
-    console.log("User disconnected:", socket.id);
-  });
-
-  // Listen for player count updates
-  socket.on("player-count", (count) => {
-    console.log("Player count received:", count); // Debug log
-    rooms[roomCode].players = rooms[roomCode].players.filter(
-      (id) => id !== socket.id
-    );
-    io.to(roomCode).emit("player-count", rooms[roomCode].players.length);
-    io.to(roomCode).emit("player-left", rooms[roomCode].players);
+    console.log("A player disconnected");
+    connectedPlayers.delete(socket.id);
+    io.emit("playerLeft", {
+      playerId: socket.id,
+      playerCount: connectedPlayers.size,
+    });
   });
 });
 
-// Start server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, async () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-
-  // Fetch AFTER the server is running
-  try {
-    const response = await fetch(`http://localhost:${PORT}/create-room`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-    const data = await response.json();
-    console.log("Room Code:", data.roomCode);
-  } catch (error) {
-    console.error("Error:", error);
-  }
+// Start the server
+http.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
