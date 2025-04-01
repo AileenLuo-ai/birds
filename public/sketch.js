@@ -22,6 +22,9 @@ function setup() {
   createCanvas(720, 513);
   textAlign(CENTER, CENTER);
 
+  // Initialize multiplayer
+  initMultiplayer();
+
   // Ensure the button is created AFTER canvas is set up
   startButton = new Button(width / 2, height - 140, 200, 60, "START");
   instructionButton = new Button(
@@ -109,7 +112,7 @@ function drawCharacterSelect() {
   imageMode(CENTER);
   titleComponent(assets.signs.title, 240, 48);
 
-  // Draw character options
+  // Draw character options with role status
   drawCharacterOption("Wingman", 200, 320, assets.birds.wingman);
   drawCharacterOption("Male Bird", 480, 320, assets.birds.male);
 }
@@ -159,6 +162,12 @@ function drawCharacterOption(role, x, y, birdImage) {
   imageMode(CENTER);
   image(birdImage, x, y - 30, 240, 240);
   tint(255, 255); // Full opacity
+
+  // Add role label
+  textFont(assets.fonts.bodyText);
+  textSize(24);
+  fill(255);
+  text(role, x, y + 120);
 }
 
 function centerCard(birdImage) {
@@ -302,119 +311,62 @@ function mousePressed() {
   }
   lastClickTime = currentTime;
 
-  if (nextButton.isClicked()) {
-    instructionCounter++;
-  }
-
-  if (playerWon) {
-    if (lvlButton.isClicked() && gameState === "PLAY") {
-      gameState = "LEVEL 2";
-      instructionCounter = 0;
-      // Reset game time for new level
-      gameStartTime = millis();
-      timeRemaining = gameTimeLimit;
-      playerWon = false;
-    } else if (lvlButton.isClicked() && gameState === "LEVEL 2") {
-      gameState = "LEVEL 3";
-      instructionCounter = 0;
-      // Reset game time for new level
-      gameStartTime = millis();
-      timeRemaining = gameTimeLimit;
-      playerWon = false;
-    }
-  }
-
-  // Start button - only in START state
-  if (gameState === "START" && instructionButton.isClicked()) {
-    gameState = "INSTRUCTION";
-    console.log("Changed to INSTRUCTION state");
-  }
-
-  // Start button - only in START state
-  if (
-    gameState === "INSTRUCTION" &&
-    playButton.isClicked() &&
-    instructionCounter === 5
-  ) {
-    gameState = "SELECT";
-  }
-
-  // DISABLE CLICKS: If we're in the male bird direction game and it's active
-  // (only allow reset button clicks if the game is won)
-  if (
-    gameState === "PLAY" &&
-    selectedRole === "MALE_BIRD" &&
-    final &&
-    directionGameActive
-  ) {
-    return;
-  }
-
-  // Start button - only in START state
-  if (gameState === "START" && startButton && startButton.isClicked()) {
-    gameState = "SELECT";
-    return;
-  }
-
-  // Character Selection - only in SELECT state
-  if (gameState === "SELECT") {
-    // Wingman selection
-    if (
-      mouseX > 200 - 120 &&
-      mouseX < 200 + 120 &&
-      mouseY > 320 - 120 &&
-      mouseY < 320 + 120
-    ) {
-      selectedRole = "WINGMAN";
-      gameState = "PLAY";
-      counter = 0;
-      final = false;
-      return;
-    }
-
-    // Male bird selection
-    if (
-      mouseX > 480 - 120 &&
-      mouseX < 480 + 120 &&
-      mouseY > 320 - 120 &&
-      mouseY < 320 + 120
-    ) {
-      selectedRole = "MALE_BIRD";
-      gameState = "PLAY";
-      counter = 0;
-      final = false;
-      return;
-    }
-    return; // Exit if we're in SELECT but didn't click on a character
-  }
-
-  // PLAY state button handling - split by specific conditions
-  if (gameState === "PLAY") {
-    if (selectedRole === "MALE_BIRD") {
-      if (continueButton && continueButton.isClicked()) {
-        counter++;
-        console.log("counter", counter);
+  switch (gameState) {
+    case "START":
+      if (startButton.isClicked()) {
+        gameState = "SELECT";
+      } else if (instructionButton.isClicked()) {
+        gameState = "INSTRUCTION";
       }
+      break;
 
-      if (counter > 0) {
-        final = true;
+    case "SELECT":
+      // Handle role selection
+      if (mouseX > 80 && mouseX < 320 && mouseY > 200 && mouseY < 440) {
+        selectedRole = "WINGMAN";
+        myRole = "WINGMAN";
+        socket.emit("selectRole", "WINGMAN");
+        gameState = "PLAY";
+        counter = 0;
+        final = false;
+      } else if (mouseX > 360 && mouseX < 600 && mouseY > 200 && mouseY < 440) {
+        selectedRole = "MALE_BIRD";
+        myRole = "MALE_BIRD";
+        socket.emit("selectRole", "MALE_BIRD");
+        gameState = "PLAY";
+        counter = 0;
+        final = false;
       }
-    }
+      break;
 
-    if (selectedRole === "WINGMAN") {
-      if (!final && continueButton && continueButton.isClicked()) {
+    case "INSTRUCTION":
+      if (nextButton.isClicked()) {
+        instructionCounter++;
+      } else if (playButton.isClicked()) {
+        gameState = "SELECT";
+      }
+      break;
+
+    case "PLAY":
+      if (continueButton.isClicked()) {
         counter++;
-        if (counter > 2) {
+        if (counter === 3) {
           final = true;
         }
-        return;
       }
-    }
-  }
-  // Global reset check - should be first
-  if (resetButton && resetButton.isClicked()) {
-    console.log("Reset button clicked");
-    handleReset();
+      break;
+
+    case "LEVEL 2":
+      if (lvlButton.isClicked()) {
+        gameState = "LEVEL 3";
+      }
+      break;
+
+    case "LEVEL 3":
+      if (resetButton.isClicked()) {
+        handleReset();
+      }
+      break;
   }
 }
 

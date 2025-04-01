@@ -27,6 +27,13 @@ const patterns = {
   },
 };
 
+// Add multiplayer state variables
+let socket;
+let myRole = null;
+let myId = null;
+let connectedPlayers = new Set();
+let currentWord = null;
+
 // Add a variable to track the current pattern type
 let currentPatternType = "worm"; // default pattern
 
@@ -50,6 +57,47 @@ function resetGameTimer() {
   console.log("Timer reset, new start time:", gameStartTime);
 }
 
+// Initialize socket connection
+function initMultiplayer() {
+  socket = io();
+
+  socket.on("connect", () => {
+    myId = socket.id;
+    console.log("Connected to server with ID:", myId);
+  });
+
+  socket.on("playerJoined", (data) => {
+    connectedPlayers.add(data.playerId);
+    console.log("Player joined:", data.playerId);
+  });
+
+  socket.on("playerLeft", (data) => {
+    connectedPlayers.delete(data.playerId);
+    console.log("Player left:", data.playerId);
+  });
+
+  socket.on("roleSelected", (data) => {
+    console.log("Role selected:", data.role, "by player:", data.playerId);
+  });
+
+  socket.on("roleTaken", (data) => {
+    alert(
+      `The ${data.role} role is already taken! Please select the other role.`
+    );
+  });
+
+  socket.on("gameStateUpdated", (gameState) => {
+    if (gameState.currentWord) {
+      currentWord = gameState.currentWord;
+    }
+  });
+
+  socket.on("partyFull", () => {
+    alert("Party is full! Please try again later.");
+    window.location.reload();
+  });
+}
+
 // Initialize the direction game
 function initDirectionGame() {
   directionGameActive = false;
@@ -58,10 +106,17 @@ function initDirectionGame() {
   playerWon = false;
   currentBirdDirection = "right";
   resetGameTimer();
-  // Randomly select a pattern type
+
+  // Generate random word and sync with other player
   const patternTypes = Object.keys(patterns);
   currentPatternType =
     patternTypes[Math.floor(Math.random() * patternTypes.length)];
+
+  if (myRole === "MALE_BIRD") {
+    // Generate and broadcast the word
+    currentWord = currentPatternType;
+    socket.emit("updateGameState", { currentWord });
+  }
 }
 
 // Process a single direction input
@@ -115,10 +170,8 @@ function processDirectionInput(keyCode) {
     rightInput = 0;
 
     if (wrongInput === 0) {
-      // All inputs were correct - move to level 2
+      // All inputs were correct - move to next level
       playerWon = true;
-      // You might want to add a level variable to track progress
-      // level = 2;
     } else {
       // Reset the game if any inputs were wrong
       setTimeout(() => {
@@ -126,7 +179,7 @@ function processDirectionInput(keyCode) {
         drawPositions = [];
         wrongInput = 0;
         currentBirdDirection = "right";
-      }, 1000); // Wait 1 second before resetting to show the wrong inputs
+      }, 500);
     }
   }
 }
