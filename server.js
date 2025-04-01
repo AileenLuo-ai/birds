@@ -53,21 +53,25 @@ io.on("connection", (socket) => {
 
   // Handle game state updates
   socket.on("updateGameState", (gameState) => {
+    // Broadcast the game state to all connected clients
     io.emit("gameStateUpdated", gameState);
   });
 
-  // Handle game timer updates
+  // Handle timer updates
   socket.on("updateTimer", (timeRemaining) => {
+    // Broadcast the timer update to all connected clients
     io.emit("timerUpdated", timeRemaining);
   });
 
   // Handle game over
   socket.on("gameOver", (data) => {
+    // Broadcast game over to all connected clients
     io.emit("gameOver", data);
   });
 
   // Handle game reset
   socket.on("gameReset", () => {
+    // Broadcast game reset to all connected clients
     io.emit("gameReset");
   });
 
