@@ -8,7 +8,7 @@ let playButton;
 let resetButton;
 let nextButton;
 let lvlButton;
-let wingmanResetButton;
+let wingButton;
 
 function preload() {
   preloadAssets(); // Load assets from assets.js
@@ -35,7 +35,7 @@ function setup() {
     "CONTINUE"
   );
   resetButton = new Button(width / 2, height / 2, 200, 60, "RESTART");
-  wingmanResetButton = new Button(width + 140, 128, 200, 60, "RESTART");
+  wingButton = new Button(width / 2 + 140, height - 72, 200, 60, "PLAY AGAIN");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
   lvlButton = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
@@ -209,42 +209,14 @@ function drawWingmanScreen() {
   titleComponent(assets.signs.how, 320, 48);
 
   if (counter === 0) {
-    centerCard(assets.cards.female);
+    image(assets.backgrounds.wing1, 0, 0, width, height);
     continueButton.draw();
   } else if (counter === 1) {
-    centerCard(assets.cards.wingman);
+    image(assets.backgrounds.wing2, 0, 0, width, height);
     continueButton.draw();
   } else if (counter === 2) {
-    centerCard(assets.cards.wingman); // Or use a different card if needed
-    continueButton.draw();
-  }
-
-  if (final) {
-    if (gameState === "PLAY") {
-      // Draw the background
-      image(assets.backgrounds.wing1, 0, 0, width, height);
-    } else if (gameState === "LEVEL 2") {
-      image(assets.backgrounds.wing2, 0, 0, width, height);
-    } else if (gameState === "LEVEL 3") {
-      image(assets.backgrounds.wing3, 0, 0, width, height);
-    }
-
-    wingmanResetButton.draw();
-    // Check if male bird won
-    if (playerWon) {
-      // Show win screen
-      if (gameState === "PLAY") {
-        image(assets.backgrounds.win, 0, 0, width, height);
-      } else if (gameState === "LEVEL 2") {
-        image(assets.backgrounds.win2, 0, 0, width, height);
-      } else if (gameState === "LEVEL 3") {
-        image(assets.backgrounds.win3, 0, 0, width, height);
-      }
-      lvlButton.draw();
-      return;
-    }
-
-    console.log("pattern type", gamePattern);
+    image(assets.backgrounds.wing3, 0, 0, width, height);
+    wingButton.draw();
   }
 }
 
@@ -436,16 +408,17 @@ function mousePressed() {
       console.log("counter", counter);
       if (counter > 2) {
         final = true;
+        handleReset();
       }
+
       return;
     }
   }
+
   // Global reset check - should be first
   if (
     (selectedRole === "MALE_BIRD" && resetButton && resetButton.isClicked()) ||
-    (selectedRole === "WINGMAN" &&
-      wingmanResetButton &&
-      wingmanResetButton.isClicked())
+    (selectedRole === "WINGMAN" && wingButton && wingButton.isClicked())
   ) {
     console.log("Reset button clicked");
     handleReset();

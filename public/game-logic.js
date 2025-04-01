@@ -1,29 +1,29 @@
 // Add the patterns object at the top of the file
 const patterns = {
   worm: {
-    1: ["up", "up", "up", "up"],
-    2: ["up", "up", "up", "up"],
-    3: ["up", "up", "up", "up"],
+    1: ["down", "up", "down", "up"],
+    2: ["up", "down", "up", "down"],
+    3: ["up", "down", "down", "up"],
   },
   stick: {
-    1: ["up", "up", "up", "up"],
-    2: ["up", "up", "up", "up"],
-    3: ["up", "up", "up", "up"],
+    1: ["right", "left", "right", "left"],
+    2: ["down", "right", "up", "right"],
+    3: ["left", "down", "up", "right"],
   },
   egg: {
-    1: ["up", "up", "up", "up"],
-    2: ["up", "up", "up", "up"],
-    3: ["up", "up", "up", "up"],
+    1: ["up", "up", "right", "right"],
+    2: ["right", "up", "right", "up"],
+    3: ["up", "right", "right", "up"],
   },
   birdhouse: {
-    1: ["up", "up", "up", "up"],
-    2: ["up", "up", "up", "up"],
-    3: ["up", "up", "up", "up"],
+    1: ["left", "right", "down", "up"],
+    2: ["left", "down", "right", "up"],
+    3: ["left", "right", "down", "up"],
   },
   nest: {
-    1: ["up", "up", "up", "up"],
-    2: ["up", "up", "up", "up"],
-    3: ["up", "up", "up", "up"],
+    1: ["left", "left", "left", "left"],
+    2: ["up", "left", "down", "right"],
+    3: ["left", "down", "right", "up"],
   },
 };
 
