@@ -18,9 +18,6 @@ function setup() {
   createCanvas(720, 513);
   textAlign(CENTER, CENTER);
 
-  // Initialize multiplayer
-  initMultiplayer();
-
   // Ensure the button is created AFTER canvas is set up
   startButton = new Button(width / 2 - 108, height - 140, 172, 60, "START");
   instructionButton = new Button(
@@ -197,12 +194,6 @@ function drawMaleBirdScreen() {
       playerInputs = [];
       drawPositions = [];
       playerWon = false;
-
-      // Sync game state with other player
-      socket.emit("updateGameState", {
-        directionGameActive: true,
-        gameStartTime: gameStartTime,
-      });
     }
 
     // Draw direction game
@@ -239,19 +230,8 @@ function drawWingmanScreen() {
     }
 
     wingmanResetButton.draw();
-
-    // Draw the pattern based on the current pattern type
-    if (currentPatternType && assets.patterns[currentPatternType]) {
-      console.log("currentPatternType", currentPatternType);
-      // Center the pattern image
-      const patternImage = assets.patterns[currentPatternType];
-      const x = width / 2 + 125;
-      const y = height / 2 - 72;
-      image(patternImage, x, y, 64, 64);
-    }
-
-    // Check if male bird won using p5.party shared state
-    if (party.playerWon) {
+    // Check if male bird won
+    if (playerWon) {
       // Show win screen
       if (gameState === "PLAY") {
         image(assets.backgrounds.win, 0, 0, width, height);
@@ -335,7 +315,7 @@ function mousePressed() {
   }
   lastClickTime = currentTime;
 
-  if (nextButton.isClicked()) {
+  if (nextButton && nextButton.isClicked()) {
     instructionCounter++;
     console.log("instructionCounter", instructionCounter);
   }
@@ -358,7 +338,7 @@ function mousePressed() {
   }
 
   // Handle wingman level transitions
-  if (selectedRole === "WINGMAN" && party.playerWon) {
+  if (selectedRole === "WINGMAN" && playerWon) {
     if (lvlButton.isClicked() && gameState === "PLAY") {
       gameState = "LEVEL 2";
       instructionCounter = 0;
@@ -412,8 +392,6 @@ function mousePressed() {
       mouseY < 320 + 120
     ) {
       selectedRole = "WINGMAN";
-      socket.emit("selectRole", "WINGMAN");
-
       gameState = "PLAY";
       counter = 0;
       final = false;
@@ -428,8 +406,6 @@ function mousePressed() {
       mouseY < 320 + 120
     ) {
       selectedRole = "MALE_BIRD";
-      socket.emit("selectRole", "MALE_BIRD");
-
       gameState = "PLAY";
       counter = 0;
       final = false;

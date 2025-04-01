@@ -48,79 +48,28 @@ let inputProcessed = false; // To prevent multiple inputs from a single key pres
 let currentBirdDirection = "right"; // Default direction for the player's bird
 let rightInput = 0;
 let wrongInput = 0;
+let timeRemaining = gameTimeLimit;
 
 // Pattern variables
-let currentPatternType = "worm"; // default pattern
-
-// Multiplayer state variables
-let socket;
-let myRole = null;
-let myId = null;
-let connectedPlayers = new Set();
-let currentWord = null;
-let isGameOver = false;
-
-// p5.party shared state
-let party = {
-  timeRemaining: gameTimeLimit,
-  gameStartTime: 0,
-  isGameActive: false,
-  playerWon: false,
+let levelPatterns = {
+  1: "",
+  2: "",
+  3: "",
 };
 
-function resetGameTimer() {
-  party.gameStartTime = millis();
-  party.timeRemaining = gameTimeLimit;
-  party.isGameActive = true;
-  party.playerWon = false;
-  console.log("Timer reset, new start time:", party.gameStartTime);
+// Function to randomly select a pattern for a level
+function selectPatternForLevel(level) {
+  const patternTypes = Object.keys(patterns);
+  const randomPattern =
+    patternTypes[Math.floor(Math.random() * patternTypes.length)];
+  levelPatterns[level] = randomPattern;
+  console.log(`Selected pattern for level ${level}: ${randomPattern}`);
 }
 
-// Initialize socket connection
-function initMultiplayer() {
-  socket = io();
-
-  socket.on("connect", () => {
-    myId = socket.id;
-    console.log("Connected to server with ID:", myId);
-  });
-
-  socket.on("playerJoined", (data) => {
-    connectedPlayers.add(data.playerId);
-    console.log("Player joined:", data.playerId);
-  });
-
-  socket.on("playerLeft", (data) => {
-    connectedPlayers.delete(data.playerId);
-    console.log("Player left:", data.playerId);
-  });
-
-  socket.on("roleSelected", (data) => {
-    console.log("Role selected:", data.role, "by player:", data.playerId);
-  });
-
-  socket.on("roleTaken", (data) => {
-    alert(
-      `The ${data.role} role is already taken! Please select the other role.`
-    );
-  });
-
-  socket.on("gameStateUpdated", (gameState) => {
-    console.log("Received game state update:", gameState);
-  });
-
-  // Update timer every second
-  setInterval(() => {
-    if (party.isGameActive) {
-      const currentTime = millis();
-      const elapsedTime = currentTime - party.gameStartTime;
-      party.timeRemaining = max(0, gameTimeLimit - elapsedTime);
-
-      if (party.timeRemaining <= 0) {
-        party.isGameActive = false;
-      }
-    }
-  }, 1000);
+function resetGameTimer() {
+  gameStartTime = millis();
+  timeRemaining = gameTimeLimit;
+  console.log("Timer reset, new start time:", gameStartTime);
 }
 
 // Initialize the direction game
@@ -133,19 +82,10 @@ function initDirectionGame() {
   resetGameTimer();
   isGameOver = false;
 
-  // Generate random word and sync with other player
-  const patternTypes = Object.keys(patterns);
-  currentPatternType =
-    patternTypes[Math.floor(Math.random() * patternTypes.length)];
-
-  if (myRole === "MALE_BIRD") {
-    // Generate and broadcast the word
-    currentWord = currentPatternType;
-    socket.emit("updateGameState", {
-      currentWord,
-      directionGameActive: true,
-    });
-  }
+  // Select patterns for each level if not already selected
+  if (!levelPatterns[1]) selectPatternForLevel(1);
+  if (!levelPatterns[2]) selectPatternForLevel(2);
+  if (!levelPatterns[3]) selectPatternForLevel(3);
 }
 
 // Process a single direction input
@@ -180,6 +120,7 @@ function processDirectionInput(keyCode) {
   // Get the current level's pattern
   const currentLevel =
     gameState === "PLAY" ? 1 : gameState === "LEVEL 2" ? 2 : 3;
+  const currentPatternType = levelPatterns[currentLevel];
   const currentPattern = patterns[currentPatternType][currentLevel];
 
   // Check if this input matches the expected pattern
@@ -254,6 +195,17 @@ function drawDirectionGame(background, winningImage, level) {
   imageMode(CORNER);
   image(background, 0, 0, 720, 513);
 
+  // Draw the pattern based on the current level's pattern type
+  const currentPatternType = levelPatterns[level];
+  if (currentPatternType && assets.patterns[currentPatternType]) {
+    console.log("currentPatternType", currentPatternType);
+    // Center the pattern image
+    const patternImage = assets.patterns[currentPatternType];
+    const x = width / 2 + 48;
+    const y = height / 2 - 72;
+    image(patternImage, x, y, 48, 48);
+  }
+
   // Check win condition first
   if (playerWon) {
     // Player completed level successfully
@@ -279,10 +231,11 @@ function drawDirectionGame(background, winningImage, level) {
   if (directionGameActive && !playerWon) {
     // Calculate time remaining
     let timeElapsed = millis() - gameStartTime;
-    let seconds = floor(party.timeRemaining / 1000);
+    timeRemaining = max(0, gameTimeLimit - timeElapsed);
+    let seconds = floor(timeRemaining / 1000);
 
     // Check time's up condition
-    if (party.timeRemaining <= 0) {
+    if (timeRemaining <= 0) {
       // Time's up - display lose background
       imageMode(CORNER);
       image(assets.backgrounds.lose, 0, 0, 720, 513);
@@ -291,9 +244,6 @@ function drawDirectionGame(background, winningImage, level) {
       text("TIME'S UP!", width / 2, height - 72);
       textSize(24);
       resetButton.draw();
-
-      // Notify other player of game over
-      socket.emit("gameOver", { reason: "timeout" });
       return;
     }
 
@@ -437,7 +387,10 @@ function handleReset() {
   wrongInput = 0;
   currentBirdDirection = "right";
   resetGameTimer();
-
-  // Notify other player of game reset
-  socket.emit("gameReset");
+  // Reset level patterns
+  levelPatterns = {
+    1: "",
+    2: "",
+    3: "",
+  };
 }
