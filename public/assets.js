@@ -12,6 +12,16 @@ let assets = {
   patterns: {},
 };
 
+// Game assets
+let backgroundImage;
+let titleImage;
+let maleBirdImage;
+let wingmanImage;
+let instructionImages = [];
+let patternImages = [];
+let winScreenImage;
+let loseScreenImage;
+
 function preloadAssets() {
   // Load sound with error handling
   assets.sounds.backgroundMusic = loadSound(
@@ -41,9 +51,9 @@ function preloadAssets() {
   assets.instructions.level3 = loadImage(
     "assets/images/instructions/level3-instruction.png"
   );
+
   // Load fonts with error handling
   assets.fonts.headingText = loadFont("assets/fonts/PressStart2P-Regular.ttf");
-
   assets.fonts.bodyText = loadFont(
     "assets/fonts/PixelifySans-VariableFont_wght.ttf"
   );
@@ -69,6 +79,7 @@ function preloadAssets() {
   assets.signs.up = loadImage("assets/images/direction/up.png");
   assets.signs.bar = loadImage("assets/images/bar.png");
   assets.cards.x = loadImage("assets/images/direction/x.png");
+
   // Load bird images with error handling
   assets.birds.male = loadImage("assets/images/cards/male-bird-card.png");
   assets.birds.wingman = loadImage("assets/images/cards/wingman-card.png");
@@ -102,4 +113,32 @@ function preloadAssets() {
   assets.patterns.egg = loadImage("assets/images/wingman/egg.png");
   assets.patterns.birdhouse = loadImage("assets/images/wingman/birdhouse.png");
   assets.patterns.nest = loadImage("assets/images/wingman/nest.png");
+
+  // Load background images
+  backgroundImage = assets.backgrounds.forest;
+  titleImage = assets.signs.title;
+
+  // Load character images
+  maleBirdImage = assets.birds.male;
+  wingmanImage = assets.birds.wingman;
+
+  // Load instruction images
+  instructionImages = [
+    assets.instructions.instruction1,
+    assets.instructions.instruction2,
+    assets.instructions.instruction3,
+    assets.instructions.instruction4,
+    assets.instructions.instruction5,
+  ];
+
+  // Load pattern images
+  patternImages = [
+    assets.patterns.worm,
+    assets.patterns.stick,
+    assets.patterns.egg,
+  ];
+
+  // Load screen images
+  winScreenImage = assets.backgrounds.win;
+  loseScreenImage = assets.backgrounds.lose;
 }

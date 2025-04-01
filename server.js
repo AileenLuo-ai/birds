@@ -6,7 +6,19 @@ const io = require("socket.io")(http);
 const port = 3000;
 
 // Serve static files from the public directory
-app.use(express.static("public"));
+app.use(
+  express.static(path.join(__dirname, "public"), {
+    setHeaders: (res, path) => {
+      if (path.endsWith(".css")) {
+        res.setHeader("Content-Type", "text/css");
+      }
+    },
+  })
+);
+
+window.onload = () => {
+  console.log("p5.party loaded:", typeof partyConnect !== "undefined");
+};
 
 // Route for the root path
 app.get("/", (req, res) => {
@@ -19,25 +31,49 @@ let connectedPlayers = new Map();
 io.on("connection", (socket) => {
   console.log("A player connected");
 
-  // Check if we already have 2 players
-  if (connectedPlayers.size >= 2) {
-    socket.emit("partyFull");
-    socket.disconnect();
-    return;
-  }
+  // Handle room joining
+  socket.on("joinRoom", (roomName) => {
+    // Leave any existing rooms
+    socket.rooms.forEach((room) => {
+      socket.leave(room);
+    });
 
-  // Add player to connected players
-  connectedPlayers.set(socket.id, { role: null });
-  socket.emit("playerJoined", {
-    playerId: socket.id,
-    playerCount: connectedPlayers.size,
+    // Join the specified room
+    socket.join(roomName);
+    console.log(`Player ${socket.id} joined room ${roomName}`);
+
+    // Get players in the room
+    const room = io.sockets.adapter.rooms.get(roomName);
+    const playerCount = room ? room.size : 0;
+
+    // Check if room is full
+    if (playerCount > 2) {
+      socket.emit("partyFull");
+      socket.disconnect();
+      return;
+    }
+
+    // Add player to connected players
+    connectedPlayers.set(socket.id, { role: null });
+    socket.emit("playerJoined", {
+      playerId: socket.id,
+      playerCount: playerCount,
+    });
+
+    // Notify other players in the room
+    socket.to(roomName).emit("playerJoined", {
+      playerId: socket.id,
+      playerCount: playerCount,
+    });
   });
 
   // Handle player role selection
   socket.on("selectRole", (role) => {
-    // Check if role is already taken
-    const roleTaken = Array.from(connectedPlayers.values()).some(
-      (player) => player.role === role
+    // Check if role is already taken in the room
+    const room = Array.from(socket.rooms)[0]; // Get the first room the player is in
+    const playersInRoom = Array.from(io.sockets.adapter.rooms.get(room) || []);
+    const roleTaken = playersInRoom.some(
+      (playerId) => connectedPlayers.get(playerId)?.role === role
     );
 
     if (roleTaken) {
@@ -48,41 +84,49 @@ io.on("connection", (socket) => {
     // Update player's role
     connectedPlayers.get(socket.id).role = role;
     socket.emit("roleSelected", { playerId: socket.id, role: role });
-    io.emit("roleSelected", { playerId: socket.id, role: role });
+    socket.to(room).emit("roleSelected", { playerId: socket.id, role: role });
   });
 
   // Handle game state updates
   socket.on("updateGameState", (gameState) => {
-    // Broadcast the game state to all connected clients
-    io.emit("gameStateUpdated", gameState);
+    const room = Array.from(socket.rooms)[0];
+    // Broadcast the game state to all players in the room
+    socket.to(room).emit("gameStateUpdated", gameState);
   });
 
   // Handle timer updates
   socket.on("updateTimer", (timeRemaining) => {
-    // Broadcast the timer update to all connected clients
-    io.emit("timerUpdated", timeRemaining);
+    const room = Array.from(socket.rooms)[0];
+    // Broadcast the timer update to all players in the room
+    socket.to(room).emit("timerUpdated", timeRemaining);
   });
 
   // Handle game over
   socket.on("gameOver", (data) => {
-    // Broadcast game over to all connected clients
-    io.emit("gameOver", data);
+    const room = Array.from(socket.rooms)[0];
+    // Broadcast game over to all players in the room
+    socket.to(room).emit("gameOver", data);
   });
 
   // Handle game reset
   socket.on("gameReset", () => {
-    // Broadcast game reset to all connected clients
-    io.emit("gameReset");
+    const room = Array.from(socket.rooms)[0];
+    // Broadcast game reset to all players in the room
+    socket.to(room).emit("gameReset");
   });
 
   // Handle disconnection
   socket.on("disconnect", () => {
     console.log("A player disconnected");
+    const room = Array.from(socket.rooms)[0];
     connectedPlayers.delete(socket.id);
-    io.emit("playerLeft", {
-      playerId: socket.id,
-      playerCount: connectedPlayers.size,
-    });
+    if (room) {
+      const playerCount = io.sockets.adapter.rooms.get(room)?.size || 0;
+      socket.to(room).emit("playerLeft", {
+        playerId: socket.id,
+        playerCount: playerCount,
+      });
+    }
   });
 });
 
