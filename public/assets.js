@@ -50,7 +50,6 @@ function preloadAssets() {
 
   // Load background images with error handling
   assets.backgrounds.forest = loadImage("assets/images/forest.png");
-  assets.backgrounds.wingman = loadImage("assets/images/level1-wingman.png");
   assets.backgrounds.win = loadImage("assets/images/win.png");
   assets.backgrounds.win2 = loadImage("assets/images/win2.png");
   assets.backgrounds.win3 = loadImage("assets/images/win3.png");
