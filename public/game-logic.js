@@ -29,11 +29,6 @@ const patterns = {
 
 // Game constants
 const gameTimeLimit = 35000; // 35 seconds in milliseconds
-const requiredSequences = {
-  1: 1, // Level 1 requires 1 sequence
-  2: 2, // Level 2 requires 2 sequences
-  3: 3, // Level 3 requires 3 sequences
-};
 
 // Game state variables
 let gameState = "START";
@@ -42,7 +37,6 @@ let counter = 0;
 let final = false;
 let instructionCounter = 0;
 let playerWon = false;
-let completedSequences = 0; // Track how many sequences completed in current level
 
 // Direction game variables
 let gamePattern = ["up", "down", "up", "down"];
@@ -63,47 +57,13 @@ let levelPatterns = {
   3: "",
 };
 
-// Track current pattern for each level
-let currentPatternIndex = {
-  1: 0,
-  2: 0,
-  3: 0,
-};
-
-// Array to store multiple patterns for each level
-let currentLevelPatterns = {
-  1: [],
-  2: [],
-  3: [],
-};
-
-// Function to randomly select patterns for a level
-function selectPatternsForLevel(level) {
+// Function to randomly select a pattern for a level
+function selectPatternForLevel(level) {
   const patternTypes = Object.keys(patterns);
-
-  // Clear previous patterns
-  currentLevelPatterns[level] = [];
-
-  // Generate required number of patterns for this level
-  for (let i = 0; i < requiredSequences[level]; i++) {
-    // Select a random pattern type
-    const randomPattern =
-      patternTypes[Math.floor(Math.random() * patternTypes.length)];
-    currentLevelPatterns[level].push({
-      type: randomPattern,
-      sequence: patterns[randomPattern][level],
-    });
-  }
-
-  // Reset the pattern index
-  currentPatternIndex[level] = 0;
-
-  // Set the initial pattern type
-  levelPatterns[level] = currentLevelPatterns[level][0].type;
-
-  console.log(
-    `Selected ${requiredSequences[level]} patterns for level ${level}`
-  );
+  const randomPattern =
+    patternTypes[Math.floor(Math.random() * patternTypes.length)];
+  levelPatterns[level] = randomPattern;
+  console.log(`Selected pattern for level ${level}: ${randomPattern}`);
 }
 
 function resetGameTimer() {
@@ -118,15 +78,14 @@ function initDirectionGame() {
   playerInputs = [];
   drawPositions = [];
   playerWon = false;
-  completedSequences = 0;
   currentBirdDirection = "right";
   resetGameTimer();
   isGameOver = false;
 
   // Select patterns for each level if not already selected
-  if (currentLevelPatterns[1].length === 0) selectPatternsForLevel(1);
-  if (currentLevelPatterns[2].length === 0) selectPatternsForLevel(2);
-  if (currentLevelPatterns[3].length === 0) selectPatternsForLevel(3);
+  if (!levelPatterns[1]) selectPatternForLevel(1);
+  if (!levelPatterns[2]) selectPatternForLevel(2);
+  if (!levelPatterns[3]) selectPatternForLevel(3);
 }
 
 // Process a single direction input
@@ -158,14 +117,11 @@ function processDirectionInput(keyCode) {
   // Add this input to player's sequence
   playerInputs.push(direction);
 
-  // Get the current level
+  // Get the current level's pattern
   const currentLevel =
     gameState === "PLAY" ? 1 : gameState === "LEVEL 2" ? 2 : 3;
-
-  // Get the current pattern for this level
-  const patternIndex = currentPatternIndex[currentLevel];
-  const currentPattern =
-    currentLevelPatterns[currentLevel][patternIndex].sequence;
+  const currentPatternType = levelPatterns[currentLevel];
+  const currentPattern = patterns[currentPatternType][currentLevel];
 
   // Check if this input matches the expected pattern
   let currentIndex = playerInputs.length - 1;
@@ -184,32 +140,10 @@ function processDirectionInput(keyCode) {
     rightInput = 0;
 
     if (wrongInput === 0) {
-      // Sequence completed successfully
-      completedSequences++;
-
-      // Check if we've completed all required sequences for this level
-      if (completedSequences >= requiredSequences[currentLevel]) {
-        // All sequences for this level completed - player wins
-        playerWon = true;
-      } else {
-        // Move to next pattern
-        currentPatternIndex[currentLevel]++;
-        // Update the current pattern type
-        levelPatterns[currentLevel] =
-          currentLevelPatterns[currentLevel][
-            currentPatternIndex[currentLevel]
-          ].type;
-
-        // Reset for next sequence
-        setTimeout(() => {
-          playerInputs = [];
-          drawPositions = [];
-          wrongInput = 0;
-          currentBirdDirection = "right";
-        }, 500);
-      }
+      // All inputs were correct - move to next level
+      playerWon = true;
     } else {
-      // Reset the pattern if any inputs were wrong
+      // Reset the game if any inputs were wrong
       setTimeout(() => {
         playerInputs = [];
         drawPositions = [];
@@ -270,19 +204,9 @@ function drawDirectionGame(background, winningImage, level) {
     image(patternImage, x, y, 48, 48);
   }
 
-  // Show how many sequences completed
-  fill(255);
-  textAlign(CENTER, CENTER);
-  textSize(20);
-  text(
-    `Sequence ${completedSequences + 1} of ${requiredSequences[level]}`,
-    width / 2,
-    48
-  );
-
   // Check win condition first
   if (playerWon) {
-    // Player completed all sequences successfully
+    // Player completed level successfully
     imageMode(CORNER);
     image(winningImage, 0, 0, 720, 513);
 
@@ -293,6 +217,11 @@ function drawDirectionGame(background, winningImage, level) {
     }
 
     drawMeter(assets.meter.meter5);
+    // Reset inputs for next level
+    playerInputs = [];
+    drawPositions = [];
+    rightInput = 0;
+    wrongInput = 0;
     return; // Exit early to avoid drawing timer and other game elements
   }
 
@@ -420,8 +349,6 @@ function mousePressed() {
       directionGameActive = false;
       resetGameTimer();
       playerWon = false;
-      completedSequences = 0;
-      currentPatternIndex[2] = 0;
       // Reset game state for new level
       playerInputs = [];
       drawPositions = [];
@@ -433,8 +360,6 @@ function mousePressed() {
       directionGameActive = false;
       resetGameTimer();
       playerWon = false;
-      completedSequences = 0;
-      currentPatternIndex[3] = 0;
       // Reset game state for new level
       playerInputs = [];
       drawPositions = [];
@@ -454,32 +379,16 @@ function handleReset() {
   final = false;
   instructionCounter = 0;
   playerWon = false;
-  completedSequences = 0;
   directionGameActive = false;
   playerInputs = [];
   drawPositions = [];
   wrongInput = 0;
   currentBirdDirection = "right";
   resetGameTimer();
-
-  // Reset pattern indexes
-  currentPatternIndex = {
-    1: 0,
-    2: 0,
-    3: 0,
-  };
-
   // Reset level patterns
   levelPatterns = {
     1: "",
     2: "",
     3: "",
-  };
-
-  // Clear all patterns
-  currentLevelPatterns = {
-    1: [],
-    2: [],
-    3: [],
   };
 }
