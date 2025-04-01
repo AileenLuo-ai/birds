@@ -9,6 +9,7 @@ let assets = {
   cards: {},
   instructions: {},
   meter: {},
+  patterns: {},
 };
 
 function preloadAssets() {
@@ -57,6 +58,9 @@ function preloadAssets() {
   assets.backgrounds.play1 = loadImage("assets/images/lvl1background.png");
   assets.backgrounds.play2 = loadImage("assets/images/lvl2background.png");
   assets.backgrounds.play3 = loadImage("assets/images/lvl3background.png");
+  assets.backgrounds.wing1 = loadImage("assets/images/wingman/lvl1.png");
+  assets.backgrounds.wing2 = loadImage("assets/images/wingman/lvl2.png");
+  assets.backgrounds.wing3 = loadImage("assets/images/wingman/lvl3.png");
 
   // directional sprites
   assets.signs.down = loadImage("assets/images/direction/down.png");
@@ -85,10 +89,17 @@ function preloadAssets() {
   assets.cards.wingman = loadImage("assets/images/cards/wingmanside-card.png");
   assets.cards.dance = loadImage("assets/images/cards/combo-card.png");
 
-  //cards
+  //meter
   assets.meter.meter1 = loadImage("assets/images/meter/meter00.png");
   assets.meter.meter2 = loadImage("assets/images/meter/meter01.png");
   assets.meter.meter3 = loadImage("assets/images/meter/meter02.png");
   assets.meter.meter4 = loadImage("assets/images/meter/meter03.png");
   assets.meter.meter5 = loadImage("assets/images/meter/meter04.png");
+
+  //game patterns
+  assets.patterns.worm = loadImage("assets/images/wingman/worm.png");
+  assets.patterns.stick = loadImage("assets/images/wingman/stick.png");
+  assets.patterns.egg = loadImage("assets/images/wingman/egg.png");
+  assets.patterns.birdhouse = loadImage("assets/images/wingman/birdhouse.png");
+  assets.patterns.nest = loadImage("assets/images/wingman/nest.png");
 }

@@ -48,7 +48,6 @@ let inputProcessed = false; // To prevent multiple inputs from a single key pres
 let currentBirdDirection = "right"; // Default direction for the player's bird
 let rightInput = 0;
 let wrongInput = 0;
-let timeRemaining = gameTimeLimit;
 
 // Pattern variables
 let currentPatternType = "worm"; // default pattern
@@ -59,12 +58,22 @@ let myRole = null;
 let myId = null;
 let connectedPlayers = new Set();
 let currentWord = null;
-let gameTimeRemaining = gameTimeLimit;
 let isGameOver = false;
 
+// p5.party shared state
+let party = {
+  timeRemaining: gameTimeLimit,
+  gameStartTime: 0,
+  isGameActive: false,
+  playerWon: false,
+};
+
 function resetGameTimer() {
-  gameStartTime = millis();
-  console.log("Timer reset, new start time:", gameStartTime);
+  party.gameStartTime = millis();
+  party.timeRemaining = gameTimeLimit;
+  party.isGameActive = true;
+  party.playerWon = false;
+  console.log("Timer reset, new start time:", party.gameStartTime);
 }
 
 // Initialize socket connection
@@ -97,45 +106,21 @@ function initMultiplayer() {
   });
 
   socket.on("gameStateUpdated", (gameState) => {
-    if (gameState.currentWord) {
-      currentWord = gameState.currentWord;
+    console.log("Received game state update:", gameState);
+  });
+
+  // Update timer every second
+  setInterval(() => {
+    if (party.isGameActive) {
+      const currentTime = millis();
+      const elapsedTime = currentTime - party.gameStartTime;
+      party.timeRemaining = max(0, gameTimeLimit - elapsedTime);
+
+      if (party.timeRemaining <= 0) {
+        party.isGameActive = false;
+      }
     }
-    if (gameState.directionGameActive !== undefined) {
-      directionGameActive = gameState.directionGameActive;
-    }
-  });
-
-  socket.on("timerUpdated", (timeRemaining) => {
-    gameTimeRemaining = timeRemaining;
-  });
-
-  socket.on("gameOver", (data) => {
-    isGameOver = true;
-    directionGameActive = false;
-    if (data.reason === "timeout") {
-      // Handle timeout game over
-      playerInputs = [];
-      drawPositions = [];
-      wrongInput = 0;
-      currentBirdDirection = "right";
-    }
-  });
-
-  socket.on("gameReset", () => {
-    isGameOver = false;
-    directionGameActive = false;
-    playerInputs = [];
-    drawPositions = [];
-    wrongInput = 0;
-    currentBirdDirection = "right";
-    gameTimeRemaining = gameTimeLimit;
-    resetGameTimer();
-  });
-
-  socket.on("partyFull", () => {
-    alert("Party is full! Please try again later.");
-    window.location.reload();
-  });
+  }, 1000);
 }
 
 // Initialize the direction game
@@ -147,7 +132,6 @@ function initDirectionGame() {
   currentBirdDirection = "right";
   resetGameTimer();
   isGameOver = false;
-  gameTimeRemaining = gameTimeLimit;
 
   // Generate random word and sync with other player
   const patternTypes = Object.keys(patterns);
@@ -295,14 +279,10 @@ function drawDirectionGame(background, winningImage, level) {
   if (directionGameActive && !playerWon) {
     // Calculate time remaining
     let timeElapsed = millis() - gameStartTime;
-    gameTimeRemaining = max(0, gameTimeLimit - timeElapsed);
-    let seconds = floor(gameTimeRemaining / 1000);
-
-    // Sync timer with other player
-    socket.emit("updateTimer", gameTimeRemaining);
+    let seconds = floor(party.timeRemaining / 1000);
 
     // Check time's up condition
-    if (gameTimeRemaining <= 0) {
+    if (party.timeRemaining <= 0) {
       // Time's up - display lose background
       imageMode(CORNER);
       image(assets.backgrounds.lose, 0, 0, 720, 513);
@@ -456,7 +436,6 @@ function handleReset() {
   drawPositions = [];
   wrongInput = 0;
   currentBirdDirection = "right";
-  gameTimeRemaining = gameTimeLimit;
   resetGameTimer();
 
   // Notify other player of game reset

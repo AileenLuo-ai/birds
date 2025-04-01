@@ -38,7 +38,7 @@ function setup() {
     "CONTINUE"
   );
   resetButton = new Button(width / 2, height / 2, 200, 60, "RESTART");
-  wingmanResetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
+  wingmanResetButton = new Button(width - 72, height - 72, 200, 60, "RESTART");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
   lvlButton = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
@@ -197,6 +197,12 @@ function drawMaleBirdScreen() {
       playerInputs = [];
       drawPositions = [];
       playerWon = false;
+
+      // Sync game state with other player
+      socket.emit("updateGameState", {
+        directionGameActive: true,
+        gameStartTime: gameStartTime,
+      });
     }
 
     // Draw direction game
@@ -208,38 +214,6 @@ function drawMaleBirdScreen() {
 function drawWingmanScreen() {
   imageMode(CORNER);
   image(assets.backgrounds.forest, 0, 0, 720, 513);
-
-  if (final) {
-    // Show timer if game is active
-    if (directionGameActive) {
-      console.log("directionGameActive", directionGameActive);
-      let seconds = floor(gameTimeRemaining / 1000);
-      fill(255);
-      textAlign(CENTER, CENTER);
-      textSize(24);
-      text("Time: " + seconds + "s", width / 2, 96);
-    }
-
-    // Show game over screen if time's up
-    if (isGameOver) {
-      imageMode(CORNER);
-      image(assets.backgrounds.lose, 0, 0, 720, 513);
-      fill(255);
-      textSize(36);
-      text("TIME'S UP!", width / 2, height - 72);
-      textSize(24);
-    }
-
-    // If final is true, show the wingman background
-    imageMode(CORNER);
-    image(assets.backgrounds.wingman, 0, 0, 720, 513);
-
-    // Add restart button at the bottom
-    wingmanResetButton.draw();
-
-    return; // Exit early to avoid drawing other elements
-  }
-
   // Only draw the title if we're not in the final state
   titleComponent(assets.signs.how, 320, 48);
 
@@ -252,6 +226,60 @@ function drawWingmanScreen() {
   } else if (counter === 2) {
     centerCard(assets.cards.wingman); // Or use a different card if needed
     continueButton.draw();
+  }
+
+  if (final) {
+    if (gameState === "PLAY") {
+      // Draw the background
+      image(assets.backgrounds.wing1, 0, 0, width, height);
+    } else if (gameState === "LEVEL 2") {
+      image(assets.backgrounds.wing2, 0, 0, width, height);
+    } else if (gameState === "LEVEL 3") {
+      image(assets.backgrounds.wing3, 0, 0, width, height);
+    }
+
+    // Draw the pattern based on the current pattern type
+    if (currentPatternType && assets.patterns[currentPatternType]) {
+      console.log("currentPatternType", currentPatternType);
+      // Center the pattern image
+      const patternImage = assets.patterns[currentPatternType];
+      const x = width / 2 + 118;
+      const y = height / 2 - 72;
+      image(patternImage, x, y, 72, 72);
+    }
+
+    // Draw synced timer using p5.party shared state
+    textFont(assets.fonts.bodyText);
+    textSize(24);
+    fill(255);
+    textAlign(CENTER);
+    text(`Time: ${ceil(party.timeRemaining / 1000)}s`, width / 2 + 128, 128);
+
+    // Check for game over using p5.party shared state
+    if (!party.isGameActive || party.timeRemaining <= 0) {
+      // Game over - show lose screen
+      image(assets.backgrounds.lose, 0, 0, width, height);
+      wingmanResetButton.draw();
+      return;
+    }
+
+    // Check if male bird won using p5.party shared state
+    if (party.playerWon) {
+      // Show win screen
+      if (gameState === "PLAY") {
+        image(assets.backgrounds.win, 0, 0, width, height);
+      } else if (gameState === "LEVEL 2") {
+        image(assets.backgrounds.win2, 0, 0, width, height);
+      } else if (gameState === "LEVEL 3") {
+        image(assets.backgrounds.win3, 0, 0, width, height);
+      }
+      lvlButton.draw();
+      return;
+    }
+
+    console.log("pattern type", gamePattern);
+    // Add restart button at the bottom
+    wingmanResetButton.draw();
   }
 }
 
