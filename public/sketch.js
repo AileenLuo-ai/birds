@@ -28,7 +28,6 @@ function setup() {
     "INSTRUCTIONS"
   );
   continueButton = new Button(
-    width / 2 + 128,
     width / 2 + 196,
     height - 72,
     148,
