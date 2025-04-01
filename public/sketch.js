@@ -112,6 +112,17 @@ function drawCharacterSelect() {
   // Draw character options with role status
   drawCharacterOption("Wingman", 200, 320, assets.birds.wingman);
   drawCharacterOption("Male Bird", 480, 320, assets.birds.male);
+
+  // Show party status
+  textFont(assets.fonts.bodyText);
+  textSize(20);
+  fill(255);
+  textAlign(CENTER);
+  if (!party.isPartyFull) {
+    text("Waiting for another player to join...", width / 2, height - 120);
+  } else {
+    text("Party is full! Select your role.", width / 2, height - 120);
+  }
 }
 
 function instructionSizing(imageInstruction) {
@@ -214,34 +225,26 @@ function drawMaleBirdScreen() {
 function drawWingmanScreen() {
   imageMode(CORNER);
   image(assets.backgrounds.forest, 0, 0, 720, 513);
-  // Only draw the title if we're not in the final state
-  titleComponent(assets.signs.how, 320, 48);
 
-  if (counter === 0) {
-    centerCard(assets.cards.female);
-    continueButton.draw();
-  } else if (counter === 1) {
-    centerCard(assets.cards.wingman);
-    continueButton.draw();
-  } else if (counter === 2) {
-    centerCard(assets.cards.wingman); // Or use a different card if needed
-    continueButton.draw();
-  }
+  if (!party.final) {
+    // Draw the title and continue button for initial screens  } else {
+    console.log("Drawing final wingman screen");
+    console.log("Current game state:", party.gameState);
+    console.log("Current pattern type:", currentPatternType);
+    console.log("Time remaining:", party.timeRemaining);
 
-  if (final) {
-    if (gameState === "PLAY") {
-      // Draw the background
+    // Draw the background based on shared level state
+    if (party.gameState === "PLAY") {
       image(assets.backgrounds.wing1, 0, 0, width, height);
-    } else if (gameState === "LEVEL 2") {
+    } else if (party.gameState === "LEVEL 2") {
       image(assets.backgrounds.wing2, 0, 0, width, height);
-    } else if (gameState === "LEVEL 3") {
+    } else if (party.gameState === "LEVEL 3") {
       image(assets.backgrounds.wing3, 0, 0, width, height);
     }
 
     // Draw the pattern based on the current pattern type
     if (currentPatternType && assets.patterns[currentPatternType]) {
-      console.log("currentPatternType", currentPatternType);
-      // Center the pattern image
+      console.log("Drawing pattern:", currentPatternType);
       const patternImage = assets.patterns[currentPatternType];
       const x = width / 2 + 118;
       const y = height / 2 - 72;
@@ -253,11 +256,11 @@ function drawWingmanScreen() {
     textSize(24);
     fill(255);
     textAlign(CENTER);
-    text(`Time: ${ceil(party.timeRemaining / 1000)}s`, width / 2 + 128, 128);
+    text(`Time: ${ceil(party.timeRemaining / 1000)}s`, width / 2 + 128, 72);
 
     // Check for game over using p5.party shared state
     if (!party.isGameActive || party.timeRemaining <= 0) {
-      // Game over - show lose screen
+      console.log("Game over - showing lose screen");
       image(assets.backgrounds.lose, 0, 0, width, height);
       wingmanResetButton.draw();
       return;
@@ -265,19 +268,22 @@ function drawWingmanScreen() {
 
     // Check if male bird won using p5.party shared state
     if (party.playerWon) {
-      // Show win screen
-      if (gameState === "PLAY") {
+      console.log(
+        "Player won - showing win screen for level:",
+        party.gameState
+      );
+      // Show win screen based on shared level state
+      if (party.gameState === "PLAY") {
         image(assets.backgrounds.win, 0, 0, width, height);
-      } else if (gameState === "LEVEL 2") {
+      } else if (party.gameState === "LEVEL 2") {
         image(assets.backgrounds.win2, 0, 0, width, height);
-      } else if (gameState === "LEVEL 3") {
+      } else if (party.gameState === "LEVEL 3") {
         image(assets.backgrounds.win3, 0, 0, width, height);
       }
       lvlButton.draw();
       return;
     }
 
-    console.log("pattern type", gamePattern);
     // Add restart button at the bottom
     wingmanResetButton.draw();
   }
@@ -335,6 +341,7 @@ function handleReset() {
   drawPositions = [];
   rightInput = 0;
   wrongInput = 0;
+  resetGameTimer();
   currentBirdDirection = "right";
   console.log("Game reset to character selection");
   return;
@@ -407,36 +414,28 @@ function mousePressed() {
 
   // Character Selection - only in SELECT state
   if (gameState === "SELECT") {
-    // Wingman selection
-    if (
-      mouseX > 200 - 120 &&
-      mouseX < 200 + 120 &&
-      mouseY > 320 - 120 &&
-      mouseY < 320 + 120
-    ) {
-      selectedRole = "WINGMAN";
-      socket.emit("selectRole", "WINGMAN");
+    if (party.isPartyFull) {
+      // Wingman selection
+      if (
+        mouseX > 200 - 120 &&
+        mouseX < 200 + 120 &&
+        mouseY > 320 - 120 &&
+        mouseY < 320 + 120
+      ) {
+        selectRole("WINGMAN");
+        return;
+      }
 
-      gameState = "PLAY";
-      counter = 0;
-      final = false;
-      return;
-    }
-
-    // Male bird selection
-    if (
-      mouseX > 480 - 120 &&
-      mouseX < 480 + 120 &&
-      mouseY > 320 - 120 &&
-      mouseY < 320 + 120
-    ) {
-      selectedRole = "MALE_BIRD";
-      socket.emit("selectRole", "MALE_BIRD");
-
-      gameState = "PLAY";
-      counter = 0;
-      final = false;
-      return;
+      // Male bird selection
+      if (
+        mouseX > 480 - 120 &&
+        mouseX < 480 + 120 &&
+        mouseY > 320 - 120 &&
+        mouseY < 320 + 120
+      ) {
+        selectRole("MALE_BIRD");
+        return;
+      }
     }
     return; // Exit if we're in SELECT but didn't click on a character
   }
@@ -498,4 +497,17 @@ function keyPressed() {
   ) {
     return false;
   }
+}
+
+function selectRole(role) {
+  if (!party.isPartyFull) {
+    console.log("Cannot select role - party not full");
+    return;
+  }
+
+  console.log("Selecting role:", role);
+  socket.emit("selectRole", {
+    partyId: party.partyId,
+    role: role,
+  });
 }

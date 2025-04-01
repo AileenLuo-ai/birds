@@ -66,6 +66,13 @@ let party = {
   gameStartTime: 0,
   isGameActive: false,
   playerWon: false,
+  currentLevel: 1,
+  gameState: "PLAY",
+  final: false,
+  counter: 0,
+  partyId: null, // Add party ID to shared state
+  players: [], // Track players in the party
+  isPartyFull: false, // Track if party is full
 };
 
 function resetGameTimer() {
@@ -83,23 +90,71 @@ function initMultiplayer() {
   socket.on("connect", () => {
     myId = socket.id;
     console.log("Connected to server with ID:", myId);
+
+    // Request to join or create a party
+    socket.emit("findParty");
+  });
+
+  socket.on("partyFound", (partyData) => {
+    console.log("Received party data:", partyData);
+    party.partyId = partyData.partyId;
+    party.players = partyData.players;
+    party.isPartyFull = partyData.isFull;
+    console.log("Joined party:", party.partyId, "Players:", party.players);
+
+    // If we're the first player, wait for another player
+    if (party.players.length === 1) {
+      console.log("Waiting for another player to join...");
+      gameState = "SELECT"; // Allow character selection screen
+    }
   });
 
   socket.on("playerJoined", (data) => {
+    console.log("Player joined event received:", data);
     connectedPlayers.add(data.playerId);
-    console.log("Player joined:", data.playerId);
+    party.players.push(data.playerId);
+    party.isPartyFull = party.players.length >= 2;
+    console.log("Player joined party:", data.playerId);
+
+    // If we're the second player, we can now select roles
+    if (party.players.length === 2) {
+      console.log("Party is full! Players can now select roles.");
+      gameState = "SELECT"; // Ensure we're on character selection screen
+    }
   });
 
   socket.on("playerLeft", (data) => {
+    console.log("Player left event received:", data);
     connectedPlayers.delete(data.playerId);
-    console.log("Player left:", data.playerId);
+    party.players = party.players.filter((id) => id !== data.playerId);
+    party.isPartyFull = false;
+    console.log("Player left party:", data.playerId);
+
+    // If we're in the game, reset to character selection
+    if (gameState !== "START" && gameState !== "SELECT") {
+      handleReset();
+    }
   });
 
   socket.on("roleSelected", (data) => {
-    console.log("Role selected:", data.role, "by player:", data.playerId);
+    console.log("Role selected event received:", data);
+    if (data.playerId !== myId) {
+      // If another player selected a role, update the UI
+      if (gameState === "SELECT") {
+        // Update UI to show which role is taken
+        if (data.role === "WINGMAN") {
+          // Disable wingman selection
+          console.log("Wingman role taken");
+        } else if (data.role === "MALE_BIRD") {
+          // Disable male bird selection
+          console.log("Male bird role taken");
+        }
+      }
+    }
   });
 
   socket.on("roleTaken", (data) => {
+    console.log("Role taken event received:", data);
     alert(
       `The ${data.role} role is already taken! Please select the other role.`
     );
@@ -396,6 +451,10 @@ function mousePressed() {
 
   if (playerWon) {
     if (lvlButton.isClicked() && gameState === "PLAY") {
+      party.gameState = "LEVEL 2";
+      party.currentLevel = 2;
+      party.final = true;
+      party.counter = 2;
       gameState = "LEVEL 2";
       instructionCounter = 0;
       directionGameActive = false;
@@ -407,6 +466,10 @@ function mousePressed() {
       rightInput = 0;
       wrongInput = 0;
     } else if (lvlButton.isClicked() && gameState === "LEVEL 2") {
+      party.gameState = "LEVEL 3";
+      party.currentLevel = 3;
+      party.final = true;
+      party.counter = 2;
       gameState = "LEVEL 3";
       instructionCounter = 0;
       directionGameActive = false;
@@ -425,6 +488,10 @@ function mousePressed() {
 
 // Modify the handleReset function
 function handleReset() {
+  party.gameState = "START";
+  party.currentLevel = 1;
+  party.final = false;
+  party.counter = 0;
   gameState = "START";
   selectedRole = "";
   counter = 0;
@@ -440,4 +507,20 @@ function handleReset() {
 
   // Notify other player of game reset
   socket.emit("gameReset");
+}
+
+// Modify the character selection to check party status
+function selectRole(role) {
+  if (!party.isPartyFull) {
+    alert("Waiting for another player to join the party...");
+    return;
+  }
+
+  if (party.players.length === 2) {
+    selectedRole = role;
+    socket.emit("selectRole", { role, partyId: party.partyId });
+    gameState = "PLAY";
+    counter = 0;
+    final = false;
+  }
 }
