@@ -13,6 +13,7 @@ let resetButton;
 let instructionCounter = 0;
 let nextButton;
 let lvlButton;
+let wingmanResetButton;
 
 function preload() {
   preloadAssets(); // Load assets from assets.js
@@ -26,10 +27,10 @@ function setup() {
   initMultiplayer();
 
   // Ensure the button is created AFTER canvas is set up
-  startButton = new Button(width / 2, height - 140, 200, 60, "START");
+  startButton = new Button(width / 2 - 108, height - 140, 172, 60, "START");
   instructionButton = new Button(
-    width / 2,
-    height - 64,
+    width / 2 + 108,
+    height - 140,
     200,
     60,
     "INSTRUCTIONS"
@@ -42,6 +43,7 @@ function setup() {
     "CONTINUE"
   );
   resetButton = new Button(width / 2, height / 2, 200, 60, "RESTART");
+  wingmanResetButton = new Button(width / 2, height - 72, 200, 60, "RESTART");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
   lvlButton = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
@@ -162,12 +164,6 @@ function drawCharacterOption(role, x, y, birdImage) {
   imageMode(CENTER);
   image(birdImage, x, y - 30, 240, 240);
   tint(255, 255); // Full opacity
-
-  // Add role label
-  textFont(assets.fonts.bodyText);
-  textSize(24);
-  fill(255);
-  text(role, x, y + 120);
 }
 
 function centerCard(birdImage) {
@@ -222,6 +218,25 @@ function drawWingmanScreen() {
     // If final is true, show the wingman background
     imageMode(CORNER);
     image(assets.backgrounds.wingman, 0, 0, 720, 513);
+
+    // Show timer if game is active
+    if (directionGameActive) {
+      let seconds = floor(gameTimeRemaining / 1000);
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(24);
+      text("Time: " + seconds + "s", width / 2, 96);
+    }
+
+    // Show game over screen if time's up
+    if (isGameOver) {
+      imageMode(CORNER);
+      image(assets.backgrounds.lose, 0, 0, 720, 513);
+      fill(255);
+      textSize(36);
+      text("TIME'S UP!", width / 2, height - 72);
+      textSize(24);
+    }
 
     // Add restart button at the bottom
     resetButton.draw();
@@ -285,7 +300,7 @@ class Button {
 
 // Add this new function
 function handleReset() {
-  gameState = "SELECT";
+  gameState = "START";
   selectedRole = "";
   counter = 0;
   final = false;
@@ -311,62 +326,128 @@ function mousePressed() {
   }
   lastClickTime = currentTime;
 
-  switch (gameState) {
-    case "START":
-      if (startButton.isClicked()) {
-        gameState = "SELECT";
-      } else if (instructionButton.isClicked()) {
-        gameState = "INSTRUCTION";
-      }
-      break;
+  if (nextButton.isClicked()) {
+    instructionCounter++;
+  }
 
-    case "SELECT":
-      // Handle role selection
-      if (mouseX > 80 && mouseX < 320 && mouseY > 200 && mouseY < 440) {
-        selectedRole = "WINGMAN";
-        myRole = "WINGMAN";
-        socket.emit("selectRole", "WINGMAN");
-        gameState = "PLAY";
-        counter = 0;
-        final = false;
-      } else if (mouseX > 360 && mouseX < 600 && mouseY > 200 && mouseY < 440) {
-        selectedRole = "MALE_BIRD";
-        myRole = "MALE_BIRD";
-        socket.emit("selectRole", "MALE_BIRD");
-        gameState = "PLAY";
-        counter = 0;
-        final = false;
-      }
-      break;
+  if (playerWon) {
+    if (lvlButton.isClicked() && gameState === "PLAY") {
+      gameState = "LEVEL 2";
+      instructionCounter = 0;
+      // Reset game time for new level
+      gameStartTime = millis();
+      timeRemaining = gameTimeLimit;
+      playerWon = false;
+    } else if (lvlButton.isClicked() && gameState === "LEVEL 2") {
+      gameState = "LEVEL 3";
+      instructionCounter = 0;
+      // Reset game time for new level
+      gameStartTime = millis();
+      timeRemaining = gameTimeLimit;
+      playerWon = false;
+    }
+  }
 
-    case "INSTRUCTION":
-      if (nextButton.isClicked()) {
-        instructionCounter++;
-      } else if (playButton.isClicked()) {
-        gameState = "SELECT";
-      }
-      break;
+  // Start button - only in START state
+  if (gameState === "START" && instructionButton.isClicked()) {
+    gameState = "INSTRUCTION";
+    console.log("Changed to INSTRUCTION state");
+  }
 
-    case "PLAY":
-      if (continueButton.isClicked()) {
+  // Start button - only in START state
+  if (
+    gameState === "INSTRUCTION" &&
+    playButton.isClicked() &&
+    instructionCounter === 5
+  ) {
+    gameState = "SELECT";
+  }
+
+  // DISABLE CLICKS: If we're in the male bird direction game and it's active
+  // (only allow reset button clicks if the game is won)
+  if (
+    gameState === "PLAY" &&
+    selectedRole === "MALE_BIRD" &&
+    final &&
+    directionGameActive
+  ) {
+    return;
+  }
+
+  // Start button - only in START state
+  if (gameState === "START" && startButton && startButton.isClicked()) {
+    gameState = "SELECT";
+    return;
+  }
+
+  // Character Selection - only in SELECT state
+  if (gameState === "SELECT") {
+    // Wingman selection
+    if (
+      mouseX > 200 - 120 &&
+      mouseX < 200 + 120 &&
+      mouseY > 320 - 120 &&
+      mouseY < 320 + 120
+    ) {
+      selectedRole = "WINGMAN";
+      socket.emit("selectRole", "WINGMAN");
+
+      gameState = "PLAY";
+      counter = 0;
+      final = false;
+      return;
+    }
+
+    // Male bird selection
+    if (
+      mouseX > 480 - 120 &&
+      mouseX < 480 + 120 &&
+      mouseY > 320 - 120 &&
+      mouseY < 320 + 120
+    ) {
+      selectedRole = "MALE_BIRD";
+      socket.emit("selectRole", "MALE_BIRD");
+
+      gameState = "PLAY";
+      counter = 0;
+      final = false;
+      return;
+    }
+    return; // Exit if we're in SELECT but didn't click on a character
+  }
+
+  // PLAY state button handling - split by specific conditions
+  if (gameState === "PLAY") {
+    if (selectedRole === "MALE_BIRD") {
+      if (continueButton && continueButton.isClicked()) {
         counter++;
-        if (counter === 3) {
+        console.log("counter", counter);
+      }
+
+      if (counter > 0) {
+        final = true;
+      }
+    }
+
+    if (selectedRole === "WINGMAN") {
+      if (!final && continueButton && continueButton.isClicked()) {
+        counter++;
+        if (counter > 2) {
           final = true;
         }
+        return;
       }
-      break;
-
-    case "LEVEL 2":
-      if (lvlButton.isClicked()) {
-        gameState = "LEVEL 3";
-      }
-      break;
-
-    case "LEVEL 3":
-      if (resetButton.isClicked()) {
-        handleReset();
-      }
-      break;
+    }
+  }
+  // Global reset check - should be first
+  if (
+    (selectedRole === "MALE_BIRD" && resetButton && resetButton.isClicked()) ||
+    (selectedRole === "WINGMAN" &&
+      wingmanResetButton &&
+      wingmanResetButton.isClicked())
+  ) {
+    console.log("Reset button clicked");
+    handleReset();
   }
 }
 

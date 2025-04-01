@@ -9,8 +9,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.7.4",
-    "p5.party": "^0.1.0"
+    "socket.io": "^4.7.4"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

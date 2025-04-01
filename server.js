@@ -56,6 +56,21 @@ io.on("connection", (socket) => {
     io.emit("gameStateUpdated", gameState);
   });
 
+  // Handle game timer updates
+  socket.on("updateTimer", (timeRemaining) => {
+    io.emit("timerUpdated", timeRemaining);
+  });
+
+  // Handle game over
+  socket.on("gameOver", (data) => {
+    io.emit("gameOver", data);
+  });
+
+  // Handle game reset
+  socket.on("gameReset", () => {
+    io.emit("gameReset");
+  });
+
   // Handle disconnection
   socket.on("disconnect", () => {
     console.log("A player disconnected");

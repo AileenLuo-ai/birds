@@ -33,6 +33,8 @@ let myRole = null;
 let myId = null;
 let connectedPlayers = new Set();
 let currentWord = null;
+let gameTimeRemaining = gameTimeLimit;
+let isGameOver = false;
 
 // Add a variable to track the current pattern type
 let currentPatternType = "worm"; // default pattern
@@ -92,6 +94,33 @@ function initMultiplayer() {
     }
   });
 
+  socket.on("timerUpdated", (timeRemaining) => {
+    gameTimeRemaining = timeRemaining;
+  });
+
+  socket.on("gameOver", (data) => {
+    isGameOver = true;
+    if (data.reason === "timeout") {
+      // Handle timeout game over
+      directionGameActive = false;
+      playerInputs = [];
+      drawPositions = [];
+      wrongInput = 0;
+      currentBirdDirection = "right";
+    }
+  });
+
+  socket.on("gameReset", () => {
+    isGameOver = false;
+    directionGameActive = false;
+    playerInputs = [];
+    drawPositions = [];
+    wrongInput = 0;
+    currentBirdDirection = "right";
+    gameTimeRemaining = gameTimeLimit;
+    resetGameTimer();
+  });
+
   socket.on("partyFull", () => {
     alert("Party is full! Please try again later.");
     window.location.reload();
@@ -106,6 +135,8 @@ function initDirectionGame() {
   playerWon = false;
   currentBirdDirection = "right";
   resetGameTimer();
+  isGameOver = false;
+  gameTimeRemaining = gameTimeLimit;
 
   // Generate random word and sync with other player
   const patternTypes = Object.keys(patterns);
@@ -250,11 +281,14 @@ function drawDirectionGame(background, winningImage, level) {
   if (directionGameActive && !playerWon) {
     // Calculate time remaining
     let timeElapsed = millis() - gameStartTime;
-    let timeRemaining = max(0, gameTimeLimit - timeElapsed);
-    let seconds = floor(timeRemaining / 1000);
+    gameTimeRemaining = max(0, gameTimeLimit - timeElapsed);
+    let seconds = floor(gameTimeRemaining / 1000);
+
+    // Sync timer with other player
+    socket.emit("updateTimer", gameTimeRemaining);
 
     // Check time's up condition
-    if (timeRemaining <= 0) {
+    if (gameTimeRemaining <= 0) {
       // Time's up - display lose background
       imageMode(CORNER);
       image(assets.backgrounds.lose, 0, 0, 720, 513);
@@ -263,6 +297,9 @@ function drawDirectionGame(background, winningImage, level) {
       text("TIME'S UP!", width / 2, height - 72);
       textSize(24);
       resetButton.draw();
+
+      // Notify other player of game over
+      socket.emit("gameOver", { reason: "timeout" });
       return;
     }
 
@@ -301,15 +338,25 @@ function drawDirectionGame(background, winningImage, level) {
     let xPos = startX + i * 68; // Closer together (50px spacing)
 
     if (drawPositions[i] === "left") {
-      image(assets.signs.left, xPos - 20, inputY - 20, 40, 40);
+      image(assets.birds.male, xPos, inputY, 48, 48);
     } else if (drawPositions[i] === "right") {
-      image(assets.signs.right, xPos - 20, inputY - 20, 40, 40);
+      push();
+      translate(xPos + 24, inputY + 24);
+      rotate(PI);
+      image(assets.birds.male, -24, -24, 48, 48);
+      pop();
     } else if (drawPositions[i] === "up") {
-      image(assets.signs.up, xPos - 20, inputY - 20, 40, 40);
+      push();
+      translate(xPos + 24, inputY + 24);
+      rotate(-PI / 2);
+      image(assets.birds.male, -24, -24, 48, 48);
+      pop();
     } else if (drawPositions[i] === "down") {
-      image(assets.signs.down, xPos - 20, inputY - 20, 40, 40);
-    } else if (drawPositions[i] === "x") {
-      image(assets.cards.x, xPos - 20, inputY - 20, 40, 40);
+      push();
+      translate(xPos + 24, inputY + 24);
+      rotate(PI / 2);
+      image(assets.birds.male, -24, -24, 48, 48);
+      pop();
     }
   }
 
@@ -390,4 +437,24 @@ function mousePressed() {
   }
 
   // ... rest of existing code ...
+}
+
+// Modify the handleReset function
+function handleReset() {
+  gameState = "START";
+  selectedRole = "";
+  counter = 0;
+  final = false;
+  instructionCounter = 0;
+  playerWon = false;
+  directionGameActive = false;
+  playerInputs = [];
+  drawPositions = [];
+  wrongInput = 0;
+  currentBirdDirection = "right";
+  gameTimeRemaining = gameTimeLimit;
+  resetGameTimer();
+
+  // Notify other player of game reset
+  socket.emit("gameReset");
 }
