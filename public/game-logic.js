@@ -27,7 +27,33 @@ const patterns = {
   },
 };
 
-// Add multiplayer state variables
+// Game constants
+const gameTimeLimit = 35000; // 35 seconds in milliseconds
+
+// Game state variables
+let gameState = "START";
+let selectedRole = "";
+let counter = 0;
+let final = false;
+let instructionCounter = 0;
+let playerWon = false;
+
+// Direction game variables
+let gamePattern = ["up", "down", "up", "down"];
+let playerInputs = []; // To store the player's inputs
+let drawPositions = []; // To store what should be drawn at each position
+let directionGameActive = false; // Track if direction game is active
+let gameStartTime = 0; // To track when the direction game started
+let inputProcessed = false; // To prevent multiple inputs from a single key press
+let currentBirdDirection = "right"; // Default direction for the player's bird
+let rightInput = 0;
+let wrongInput = 0;
+let timeRemaining = gameTimeLimit;
+
+// Pattern variables
+let currentPatternType = "worm"; // default pattern
+
+// Multiplayer state variables
 let socket;
 let myRole = null;
 let myId = null;
@@ -35,24 +61,6 @@ let connectedPlayers = new Set();
 let currentWord = null;
 let gameTimeRemaining = gameTimeLimit;
 let isGameOver = false;
-
-// Add a variable to track the current pattern type
-let currentPatternType = "worm"; // default pattern
-
-// Direction game variables
-let gamePattern = ["up", "down", "up", "down"];
-
-let playerInputs = []; // To store the player's inputs
-let drawPositions = []; // To store what should be drawn at each position
-let directionGameActive = false; // Track if direction game is active
-let gameStartTime = 0; // To track when the direction game started
-let gameTimeLimit = 35000; // 35 seconds in milliseconds
-let playerWon = false; // Track if player has won the direction game
-let inputProcessed = false; // To prevent multiple inputs from a single key press
-let currentBirdDirection = "right"; // Default direction for the player's bird
-let rightInput = 0;
-let wrongInput = 0;
-let timeRemaining = gameTimeLimit;
 
 function resetGameTimer() {
   gameStartTime = millis();
@@ -92,6 +100,9 @@ function initMultiplayer() {
     if (gameState.currentWord) {
       currentWord = gameState.currentWord;
     }
+    if (gameState.directionGameActive !== undefined) {
+      directionGameActive = gameState.directionGameActive;
+    }
   });
 
   socket.on("timerUpdated", (timeRemaining) => {
@@ -100,9 +111,9 @@ function initMultiplayer() {
 
   socket.on("gameOver", (data) => {
     isGameOver = true;
+    directionGameActive = false;
     if (data.reason === "timeout") {
       // Handle timeout game over
-      directionGameActive = false;
       playerInputs = [];
       drawPositions = [];
       wrongInput = 0;
@@ -146,7 +157,10 @@ function initDirectionGame() {
   if (myRole === "MALE_BIRD") {
     // Generate and broadcast the word
     currentWord = currentPatternType;
-    socket.emit("updateGameState", { currentWord });
+    socket.emit("updateGameState", {
+      currentWord,
+      directionGameActive: true,
+    });
   }
 }
 
@@ -338,25 +352,15 @@ function drawDirectionGame(background, winningImage, level) {
     let xPos = startX + i * 68; // Closer together (50px spacing)
 
     if (drawPositions[i] === "left") {
-      image(assets.birds.male, xPos, inputY, 48, 48);
+      image(assets.signs.left, xPos - 20, inputY - 20, 40, 40);
     } else if (drawPositions[i] === "right") {
-      push();
-      translate(xPos + 24, inputY + 24);
-      rotate(PI);
-      image(assets.birds.male, -24, -24, 48, 48);
-      pop();
+      image(assets.signs.right, xPos - 20, inputY - 20, 40, 40);
     } else if (drawPositions[i] === "up") {
-      push();
-      translate(xPos + 24, inputY + 24);
-      rotate(-PI / 2);
-      image(assets.birds.male, -24, -24, 48, 48);
-      pop();
+      image(assets.signs.up, xPos - 20, inputY - 20, 40, 40);
     } else if (drawPositions[i] === "down") {
-      push();
-      translate(xPos + 24, inputY + 24);
-      rotate(PI / 2);
-      image(assets.birds.male, -24, -24, 48, 48);
-      pop();
+      image(assets.signs.down, xPos - 20, inputY - 20, 40, 40);
+    } else if (drawPositions[i] === "x") {
+      image(assets.cards.x, xPos - 20, inputY - 20, 40, 40);
     }
   }
 

@@ -1,16 +1,11 @@
-// Game state variables
-let gameState = "START";
-let selectedRole = "";
+// UI-specific variables
 let startButton;
 let instructionButton;
 let continueButton;
-let counter = 0;
-let final = false;
 let lastClickTime = 0;
 const CLICK_DELAY = 100; // Increase delay to ensure clicks are well-separated
 let playButton;
 let resetButton;
-let instructionCounter = 0;
 let nextButton;
 let lvlButton;
 let wingmanResetButton;
@@ -215,12 +210,9 @@ function drawWingmanScreen() {
   image(assets.backgrounds.forest, 0, 0, 720, 513);
 
   if (final) {
-    // If final is true, show the wingman background
-    imageMode(CORNER);
-    image(assets.backgrounds.wingman, 0, 0, 720, 513);
-
     // Show timer if game is active
     if (directionGameActive) {
+      console.log("directionGameActive", directionGameActive);
       let seconds = floor(gameTimeRemaining / 1000);
       fill(255);
       textAlign(CENTER, CENTER);
@@ -238,8 +230,12 @@ function drawWingmanScreen() {
       textSize(24);
     }
 
+    // If final is true, show the wingman background
+    imageMode(CORNER);
+    image(assets.backgrounds.wingman, 0, 0, 720, 513);
+
     // Add restart button at the bottom
-    resetButton.draw();
+    wingmanResetButton.draw();
 
     return; // Exit early to avoid drawing other elements
   }
@@ -330,7 +326,8 @@ function mousePressed() {
     instructionCounter++;
   }
 
-  if (playerWon) {
+  // Handle level transitions
+  if (directionGameActive && playerWon) {
     if (lvlButton.isClicked() && gameState === "PLAY") {
       gameState = "LEVEL 2";
       instructionCounter = 0;
