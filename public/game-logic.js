@@ -7,7 +7,7 @@ const patterns = {
   },
   stick: {
     1: ["right", "left", "right", "left"],
-    2: ["down", "right", "up", "right"],
+    2: ["down", "left", "up", "right"],
     3: ["left", "down", "up", "right"],
   },
   egg: {
@@ -163,18 +163,16 @@ function handleDirectionGameKeyPress(keyCode) {
   if (directionGameActive && !inputProcessed) {
     let timeElapsed = millis() - gameStartTime;
 
+    // Check if time's up
+    if (timeRemaining <= 0 && keyCode === ENTER) {
+      // Reset the game to level 1
+      handleReset();
+      return; // Don't process other inputs when time's up
+    }
+
     if (timeElapsed < gameTimeLimit && !playerWon) {
       // Game is active and not won yet
-      if (keyCode === ENTER) {
-        // Reset the game if the sequence was wrong
-        if (wrongInput > 0) {
-          playerInputs = [];
-          drawPositions = [];
-          wrongInput = 0;
-          currentBirdDirection = "right";
-          inputProcessed = true;
-        }
-      } else if (
+      if (
         (keyCode === LEFT_ARROW ||
           keyCode === RIGHT_ARROW ||
           keyCode === UP_ARROW ||
@@ -241,9 +239,9 @@ function drawDirectionGame(background, winningImage, level) {
       image(assets.backgrounds.lose, 0, 0, 720, 513);
       fill(255);
       textSize(36);
-      text("TIME'S UP!", width / 2, height - 72);
+      text("TIME'S UP!", width / 2, height - 148);
       textSize(24);
-      resetButton.draw();
+      text("Press ENTER to restart", width / 2, height - 72);
       return;
     }
 

@@ -29,13 +29,14 @@ function setup() {
   );
   continueButton = new Button(
     width / 2 + 128,
+    width / 2 + 196,
     height - 72,
-    200,
+    148,
     60,
     "CONTINUE"
   );
   resetButton = new Button(width / 2, height / 2, 200, 60, "RESTART");
-  wingButton = new Button(width / 2 + 140, height - 72, 200, 60, "PLAY AGAIN");
+  wingButton = new Button(width / 2 + 200, height - 72, 200, 60, "PLAY AGAIN");
   nextButton = new Button(width / 2 + 128, height - 72, 200, 60, "NEXT");
   playButton = new Button(width / 2 + 128, height - 72, 200, 60, "PLAY");
   lvlButton = new Button(width / 2, height - 72, 200, 60, "NEXT LEVEL");
@@ -87,11 +88,6 @@ function drawStartScreen() {
   textSize(64);
   fill(255);
   text("Love Birds", width / 2, height / 3);
-
-  // Subtitle
-  textFont(assets.fonts.bodyText);
-  textSize(16);
-  text("A Game About Connection", width / 2, height / 2);
 
   // Draw start button
   startButton.draw();
@@ -202,6 +198,15 @@ function drawMaleBirdScreen() {
   }
 }
 
+function tryAgain() {
+  // Add text for restarting
+  fill("white");
+  textAlign(CENTER, CENTER);
+  textSize(20);
+  text("Press ENTER to restart", width - 164, 84);
+  pop();
+}
+
 function drawWingmanScreen() {
   imageMode(CORNER);
   image(assets.backgrounds.forest, 0, 0, 720, 513);
@@ -210,12 +215,15 @@ function drawWingmanScreen() {
 
   if (counter === 0) {
     image(assets.backgrounds.wing1, 0, 0, width, height);
+    tryAgain();
     continueButton.draw();
   } else if (counter === 1) {
     image(assets.backgrounds.wing2, 0, 0, width, height);
+    tryAgain();
     continueButton.draw();
   } else if (counter === 2) {
     image(assets.backgrounds.wing3, 0, 0, width, height);
+    tryAgain();
     wingButton.draw();
   }
 }
@@ -410,7 +418,6 @@ function mousePressed() {
         final = true;
         handleReset();
       }
-
       return;
     }
   }
@@ -418,7 +425,8 @@ function mousePressed() {
   // Global reset check - should be first
   if (
     (selectedRole === "MALE_BIRD" && resetButton && resetButton.isClicked()) ||
-    (selectedRole === "WINGMAN" && wingButton && wingButton.isClicked())
+    (selectedRole === "WINGMAN" && wingButton && wingButton.isClicked()) ||
+    (selectedRole === "WINGMAN" && counter >= 3)
   ) {
     console.log("Reset button clicked");
     handleReset();
@@ -427,6 +435,17 @@ function mousePressed() {
 
 // Add keyPressed function to handle keyboard input
 function keyPressed() {
+  // Handle Enter key press for Wingman restart
+  if (
+    (selectedRole === "WINGMAN" && keyCode === ENTER && gameState === "PLAY") ||
+    (selectedRole === "WINGMAN" &&
+      keyCode === ENTER &&
+      gameState === "INSTRUCTION")
+  ) {
+    handleReset();
+    return false;
+  }
+
   // Only process key events for the direction game
   if (
     (selectedRole === "MALE_BIRD" &&
