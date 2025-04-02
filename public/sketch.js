@@ -294,7 +294,7 @@ function mousePressed() {
   }
   lastClickTime = currentTime;
 
-  if (nextButton && nextButton.isClicked()) {
+  if (nextButton && nextButton.isClicked() && instructionCounter < 1) {
     instructionCounter++;
     console.log("instructionCounter", instructionCounter);
   }
