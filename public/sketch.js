@@ -297,6 +297,7 @@ function mousePressed() {
   if (nextButton && nextButton.isClicked() && instructionCounter < 1) {
     instructionCounter++;
     console.log("instructionCounter", instructionCounter);
+    return;
   }
 
   // Handle level transitions
