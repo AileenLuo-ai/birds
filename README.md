@@ -1,4 +1,4 @@
-# Love Birds - A Game About Connection
+# GBDA 302 - Love Birds - A Game About Connection
 
 Love Birds is an interactive storytelling game where players can choose to play as either a Male Bird trying to perform a mating dance or a Wingman helping another bird find love. The game features character selection, interactive storytelling, and a fun directional dancing minigame.
 
