@@ -68,7 +68,12 @@ function selectPatternForLevel(level) {
   const randomPattern =
     patternTypes[Math.floor(Math.random() * patternTypes.length)];
   levelPatterns[level] = randomPattern;
-  console.log(`Selected pattern for level ${level}: ${randomPattern}`);
+  console.log(
+    `Level ${level} pattern: ${randomPattern} (${patterns[randomPattern][
+      level
+    ].join(", ")})`
+  );
+  return randomPattern;
 }
 
 // Reset the game timer with the appropriate time limit for the current level
@@ -93,8 +98,10 @@ function initDirectionGame() {
   drawPositions = [];
   playerWon = false;
   currentBirdDirection = "right";
+  isGameOver = false;
 
-  // Select patterns for each level if not already selected
+  // If this is the first initialization (not a restart),
+  // and patterns haven't been selected yet, select them now
   if (!levelPatterns[1]) selectPatternForLevel(1);
   if (!levelPatterns[2]) selectPatternForLevel(2);
   if (!levelPatterns[3]) selectPatternForLevel(3);
@@ -401,12 +408,20 @@ function handleReset() {
   wrongInput = 0;
   currentBirdDirection = "right";
   resetGameTimer();
-  // Reset level patterns
+
+  // Reset level patterns and randomize new ones
   levelPatterns = {
     1: "",
     2: "",
     3: "",
   };
+
+  // Immediately select new random patterns for each level
+  selectPatternForLevel(1);
+  selectPatternForLevel(2);
+  selectPatternForLevel(3);
+
+  console.log("Game reset with new random patterns");
 }
 
 // Add an explicit draw function for level 1

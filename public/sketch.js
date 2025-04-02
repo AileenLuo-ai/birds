@@ -307,12 +307,26 @@ function mousePressed() {
       // Reset game time for new level
       resetGameTimer();
       playerWon = false;
+      // Reset game state for new level
+      playerInputs = [];
+      drawPositions = [];
+      rightInput = 0;
+      wrongInput = 0;
+      // Randomize pattern for level 2
+      selectPatternForLevel(2);
     } else if (lvlButton.isClicked() && gameState === "LEVEL 2") {
       gameState = "LEVEL 3";
       instructionCounter = 0;
       // Reset game time for new level
       resetGameTimer();
       playerWon = false;
+      // Reset game state for new level
+      playerInputs = [];
+      drawPositions = [];
+      rightInput = 0;
+      wrongInput = 0;
+      // Randomize pattern for level 3
+      selectPatternForLevel(3);
     }
   }
 
