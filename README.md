@@ -2,13 +2,13 @@
 
 Love Birds is an interactive storytelling game where players can choose to play as either a Male Bird trying to perform a mating dance or a Wingman helping another bird find love. The game features character selection, interactive storytelling, and a fun directional dancing minigame.
 
-##Warning
+## Warning
 
 - THIS GAME IS NOT MOBILE RESPONSIVE.
 - Do not play on splitscreen on a monitor- the game elements may overlap
   if not displayed at 100% which will cause double-clicks and issues
 - We recommend playing the game by two people on desktop devices, on default zoom:
-  [Link text](https://birds-navy.vercel.app/)
+  [https://birds-navy.vercel.app/](https://birds-navy.vercel.app/)
 
 ## Table of Contents
 
@@ -17,6 +17,7 @@ Love Birds is an interactive storytelling game where players can choose to play 
 - [Game Structure](#game-structure)
 - [How to Play](#how-to-play)
 - [Controls](#controls)
+- [Deployment](#deployment)
 - [Troubleshooting](#troubleshooting)
 - [Credits](#credits)
 
@@ -35,9 +36,9 @@ To run Love Birds, you'll need:
 The game has been deployed to Vercel, and can be played without a local
 server!
 
-[Link text](https://birds-navy.vercel.app/)
+[https://birds-navy.vercel.app/](https://birds-navy.vercel.app/)
 
-1. **Download the Game Files**
+1. **Download the Game Files & Libraries **
 
    - Download all game files from the project repository
    - Keep the file structure intact
@@ -70,6 +71,8 @@ love-birds/
 ├── sketch.js            # Main game code
 ├── game-logic.js        # Specific Logic
 ├── assets.js            # Asset loading and management
+├── favicon.svg          # SVG favicon for modern browsers
+├── vercel.json          # Vercel deployment configuration
 │
 ├── assets/
 │   ├── fonts/           # Game fonts
@@ -125,6 +128,27 @@ love-birds/
 - **Keyboard**
   - Arrow Keys (↑, ↓, ←, →): Control the Male Bird's dance directions
   - Enter: Reset the dance sequence after a mistake or when time expires
+
+## Deployment
+
+The game is deployed on Vercel and can be accessed at [https://birds-navy.vercel.app/](https://birds-navy.vercel.app/).
+
+### Deployment Configuration
+
+The project includes a `vercel.json` configuration file that handles:
+
+- Static asset serving
+- Proper routing for all game assets
+- Path configuration for the public directory
+
+If you fork this project, you can deploy it to Vercel by:
+
+1. Creating a Vercel account
+2. Connecting your GitHub repository
+3. Setting the output directory to `/public`
+4. Deploying the project
+
+The included configuration ensures that all assets, including images and sounds, are properly served in the web environment.
 
 ## Troubleshooting
 
