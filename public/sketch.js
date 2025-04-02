@@ -173,27 +173,16 @@ function drawGame() {
 }
 
 function drawMaleBirdScreen() {
-  // Use background image if available
-  imageMode(CORNER);
-  image(assets.backgrounds.forest, 0, 0, 720, 513);
-
-  titleComponent(assets.signs.level, 240, 48);
-  instructionSizing(assets.instructions.level2);
-  continueButton.draw();
-
-  if (final === true) {
-    if (!directionGameActive) {
-      // First time reaching final state, initialize the direction game
-      directionGameActive = true;
-      gameStartTime = millis();
-      playerInputs = [];
-      drawPositions = [];
-      playerWon = false;
-    }
-
-    // Draw direction game
-    drawDirectionGame(assets.backgrounds.play1, assets.backgrounds.win, 1);
-    return;
+  if (instructionCounter === 0) {
+    // Use background image if available
+    imageMode(CORNER);
+    image(assets.backgrounds.forest, 0, 0, 720, 513);
+    titleComponent(assets.signs.level, 240, 48);
+    instructionSizing(assets.instructions.level2);
+    nextButton.draw();
+  } else if (final === true) {
+    // Call our new dedicated function for level 1 gameplay
+    drawPlayScreen();
   }
 }
 

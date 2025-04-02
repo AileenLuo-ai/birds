@@ -29,9 +29,9 @@ const patterns = {
 
 // Game constants
 const gameTimeLimits = {
-  1: 8000, // 25 seconds for level 1
+  1: 25000, // 25 seconds for level 1
   2: 15000, // 15 seconds for level 2
-  3: 25000, // 8 seconds for level 3
+  3: 8000, // 8 seconds for level 3
 };
 let currentGameTimeLimit = gameTimeLimits[1]; // Default to level 1 time
 
@@ -73,16 +73,16 @@ function selectPatternForLevel(level) {
 
 // Reset the game timer with the appropriate time limit for the current level
 function resetGameTimer() {
+  // Determine the current level based on gameState
   const currentLevel =
     gameState === "PLAY" ? 1 : gameState === "LEVEL 2" ? 2 : 3;
   currentGameTimeLimit = gameTimeLimits[currentLevel];
   gameStartTime = millis();
   timeRemaining = currentGameTimeLimit;
   console.log(
-    `Timer reset for level ${currentLevel}, new time limit: ${
+    `Timer reset for level ${currentLevel}, time limit: ${
       currentGameTimeLimit / 1000
-    }s, start time:`,
-    gameStartTime
+    }s`
   );
 }
 
@@ -93,8 +93,6 @@ function initDirectionGame() {
   drawPositions = [];
   playerWon = false;
   currentBirdDirection = "right";
-  resetGameTimer();
-  isGameOver = false;
 
   // Select patterns for each level if not already selected
   if (!levelPatterns[1]) selectPatternForLevel(1);
@@ -319,6 +317,8 @@ function drawLevel2Screen() {
   } else if (instructionCounter === 1) {
     if (!directionGameActive) {
       directionGameActive = true;
+      // Set time limit for level 2
+      currentGameTimeLimit = gameTimeLimits[2];
       resetGameTimer();
       playerInputs = [];
       drawPositions = [];
@@ -340,6 +340,8 @@ function drawLevel3Screen() {
   } else if (instructionCounter === 1) {
     if (!directionGameActive) {
       directionGameActive = true;
+      // Set time limit for level 3
+      currentGameTimeLimit = gameTimeLimits[3];
       resetGameTimer();
       playerInputs = [];
       drawPositions = [];
@@ -405,4 +407,28 @@ function handleReset() {
     2: "",
     3: "",
   };
+}
+
+// Add an explicit draw function for level 1
+function drawPlayScreen() {
+  if (instructionCounter === 0) {
+    imageMode(CORNER);
+    image(assets.backgrounds.forest, 0, 0, 720, 513);
+    instructionSizing(assets.instructions.play);
+    nextButton.draw();
+  } else if (instructionCounter === 1) {
+    if (!directionGameActive) {
+      directionGameActive = true;
+      // Set time limit for level 1
+      currentGameTimeLimit = gameTimeLimits[1];
+      resetGameTimer();
+      playerInputs = [];
+      drawPositions = [];
+      rightInput = 0;
+      wrongInput = 0;
+    }
+    imageMode(CORNER);
+    image(assets.backgrounds.play1, 0, 0, 720, 513);
+    drawDirectionGame(assets.backgrounds.play1, assets.backgrounds.win1, 1);
+  }
 }
