@@ -1,11 +1,19 @@
 # Love Birds - A Game About Connection
 
-Love Birds is an interactive storytelling game where players can choose to play as either a Male Bird trying to perform a mating dance or a Wingman helping another bird find love. The game features character selection, interactive storytelling, and a fun directional dancing minigame. THIS GAME IS NOT MOBILE RESPONSIVE.
+Love Birds is an interactive storytelling game where players can choose to play as either a Male Bird trying to perform a mating dance or a Wingman helping another bird find love. The game features character selection, interactive storytelling, and a fun directional dancing minigame.
+
+##Warning
+
+- THIS GAME IS NOT MOBILE RESPONSIVE.
+- Do not play on splitscreen on a monitor- the game elements may overlap
+  if not displayed at 100% which will cause double-clicks and issues
+- We recommend playing the game by two people on desktop devices, on default zoom:
+  [Link text](https://birds-navy.vercel.app/)
 
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Installation](#installation)
+- [Installation (optional)](#installation)
 - [Game Structure](#game-structure)
 - [How to Play](#how-to-play)
 - [Controls](#controls)
@@ -22,7 +30,12 @@ To run Love Birds, you'll need:
 - An internet connection (for initial download only)
 - A computer with audio capabilities
 
-## Installation
+## Installation (optional)
+
+The game has been deployed to Vercel, and can be played without a local
+server!
+
+[Link text](https://birds-navy.vercel.app/)
 
 1. **Download the Game Files**
 
@@ -55,6 +68,7 @@ love-birds/
 │
 ├── index.html           # Main HTML file
 ├── sketch.js            # Main game code
+├── game-logic.js        # Specific Logic
 ├── assets.js            # Asset loading and management
 │
 ├── assets/
@@ -95,7 +109,7 @@ love-birds/
    - If you chose Male Bird, you'll eventually reach a dancing minigame
    - Use the arrow keys to perform the correct dance sequence
    - Match the pattern: LEFT, LEFT, RIGHT, DOWN
-   - You have 30 seconds to complete the sequence correctly
+   - You have 35 seconds to complete the sequence correctly
 
 5. **Restart**
    - Use the "RESTART" button at the end of either storyline to return to character selection
