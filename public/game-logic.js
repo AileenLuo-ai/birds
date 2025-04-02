@@ -28,7 +28,12 @@ const patterns = {
 };
 
 // Game constants
-const gameTimeLimit = 35000; // 35 seconds in milliseconds
+const gameTimeLimits = {
+  1: 8000, // 25 seconds for level 1
+  2: 15000, // 15 seconds for level 2
+  3: 25000, // 8 seconds for level 3
+};
+let currentGameTimeLimit = gameTimeLimits[1]; // Default to level 1 time
 
 // Game state variables
 let gameState = "START";
@@ -48,7 +53,7 @@ let inputProcessed = false; // To prevent multiple inputs from a single key pres
 let currentBirdDirection = "right"; // Default direction for the player's bird
 let rightInput = 0;
 let wrongInput = 0;
-let timeRemaining = gameTimeLimit;
+let timeRemaining = currentGameTimeLimit;
 
 // Pattern variables
 let levelPatterns = {
@@ -66,10 +71,19 @@ function selectPatternForLevel(level) {
   console.log(`Selected pattern for level ${level}: ${randomPattern}`);
 }
 
+// Reset the game timer with the appropriate time limit for the current level
 function resetGameTimer() {
+  const currentLevel =
+    gameState === "PLAY" ? 1 : gameState === "LEVEL 2" ? 2 : 3;
+  currentGameTimeLimit = gameTimeLimits[currentLevel];
   gameStartTime = millis();
-  timeRemaining = gameTimeLimit;
-  console.log("Timer reset, new start time:", gameStartTime);
+  timeRemaining = currentGameTimeLimit;
+  console.log(
+    `Timer reset for level ${currentLevel}, new time limit: ${
+      currentGameTimeLimit / 1000
+    }s, start time:`,
+    gameStartTime
+  );
 }
 
 // Initialize the direction game
@@ -170,7 +184,7 @@ function handleDirectionGameKeyPress(keyCode) {
       return; // Don't process other inputs when time's up
     }
 
-    if (timeElapsed < gameTimeLimit && !playerWon) {
+    if (timeElapsed < currentGameTimeLimit && !playerWon) {
       // Game is active and not won yet
       if (
         (keyCode === LEFT_ARROW ||
@@ -229,7 +243,7 @@ function drawDirectionGame(background, winningImage, level) {
   if (directionGameActive && !playerWon) {
     // Calculate time remaining
     let timeElapsed = millis() - gameStartTime;
-    timeRemaining = max(0, gameTimeLimit - timeElapsed);
+    timeRemaining = max(0, currentGameTimeLimit - timeElapsed);
     let seconds = floor(timeRemaining / 1000);
 
     // Check time's up condition

@@ -112,7 +112,10 @@ love-birds/
    - If you chose Male Bird, you'll eventually reach a dancing minigame
    - Use the arrow keys to perform the correct dance sequence
    - Match the pattern: LEFT, LEFT, RIGHT, DOWN
-   - You have 35 seconds to complete the sequence correctly
+   - Time limits decrease with each level:
+     - Level 1: 25 seconds
+     - Level 2: 15 seconds
+     - Level 3: 8 seconds
 
 5. **Restart**
    - Use the "RESTART" button at the end of either storyline to return to character selection
